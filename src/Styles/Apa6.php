@@ -1,907 +1,997 @@
-<?php
-/**********************************************************/
-/*     American Psychological Association (APA) format    */
-/**********************************************************/
+<?php namespace Piestar\CitationBuilder\Styles;
 
-//Format a date published (APA)
-function apamagnewsdate($datepublishedday, $datepublishedmonth, $datepublishedyear) {
-	if (!$datepublishedday && !$datepublishedmonth && !$datepublishedyear) {
-		$apamagnewsdate = '(n.d.)';
-	}else{
-			$apamagnewsdate = '(' . $datepublishedyear . ', ' . $datepublishedmonth;
-			if ($datepublishedday) {
-				$apamagnewsdate .= ' ' . $datepublishedday;
+use Piestar\CitationBuilder\Utility;
+
+/**
+ * American Psychological Association (APA) format
+ */
+class Apa6 {
+
+	/** Format a date published (APA)
+	 *
+	 * @param $day
+	 * @param $month
+	 * @param $year
+	 *
+	 * @return string
+	 */
+	function formatPublishDate($day, $month, $year)
+	{
+		if ( ! $day && ! $month && ! $year) {
+			$apamagnewsdate = '(n.d.)';
+		} else {
+			$apamagnewsdate = '(' . $year . ', ' . $month;
+			if ($day) {
+				$apamagnewsdate .= ' ' . $day;
 			}
 			$apamagnewsdate .= ')';
 		}
-	return $apamagnewsdate;
-}
 
-//Format page numbers for a newspaper citing (APA)
-function apanewspaperpages($pagesstartinput, $pagesendinput, $pagesnonconsecutiveinput, $pagesnonconsecutivepagenumsinput) {
-	if (($pagesstartinput==$pagesendinput || $pagesstartinput && !$pagesendinput) && ($pagesstartinput && !$pagesnonconsecutiveinput)) {
-		//if start page equals end page or there is a start page, but no end page
-		$html = 'p. ' . uppercasewords($pagesstartinput);
-		return $html;
+		return $apamagnewsdate;
 	}
-	if ($pagesstartinput<$pagesendinput && !$pagesnonconsecutiveinput) {
-		//if start page is less than end page and the pages are consecutive
-		$html = 'pp. ' . uppercasewords($pagesstartinput) . "-" . uppercasewords($pagesendinput);
-		return $html;
-	}
-	if ($pagesnonconsecutiveinput && $pagesnonconsecutivepagenumsinput) {
-		//if the pages are not consecutive and there are page numbers to display
-		$html = 'pp. ' . $pagesnonconsecutivepagenumsinput;
-		return $html;
-	}
-}
 
-//Format page numbers for a scholarly journal citing (APA)
-function apascholarjournalpages($pagesstartinput, $pagesendinput, $pagesnonconsecutiveinput, $pagesnonconsecutivepagenumsinput) {
-	if (($pagesstartinput==$pagesendinput || $pagesstartinput && !$pagesendinput) && ($pagesstartinput && !$pagesnonconsecutiveinput)) {
-		//if start page equals end page or there is a start page, but no end page
-		$html = uppercasewords($pagesstartinput);
-		return $html;
-	}
-	if ($pagesstartinput<$pagesendinput && !$pagesnonconsecutiveinput) {
-		//if start page is less than end page and the pages are consecutive
-		$html = uppercasewords($pagesstartinput) . "-" . uppercasewords($pagesendinput);
-		return $html;
-	}
-	if ($pagesnonconsecutiveinput && $pagesnonconsecutivepagenumsinput) {
-		//if the pages are not consecutive and there are page numbers to display
-		$html = $pagesnonconsecutivepagenumsinput;
-		return $html;
-	}
-}
+	/**
+	 * Format page numbers for a newspaper citing (APA)
+	 *
+	 * @param $startPage
+	 * @param $endPage
+	 * @param $hasNonConsecutivePages
+	 * @param $nonConsecutivePageNums
+	 *
+	 * @return string
+	 */
+	function formatNewspaperPageNumbers($startPage, $endPage, $hasNonConsecutivePages, $nonConsecutivePageNums)
+	{
+		if (($startPage == $endPage || $startPage && ! $endPage) && ($startPage && ! $hasNonConsecutivePages)) {
+			// if start page is less than end page and the pages are consecutive
+			$ret = 'p. ' . ucwords($startPage);
 
-//Format the author names (APA)
-function apaauthorformat($contributors) {
-	//Count the number of contributors in the array
-	$countcontributors = count($contributors);
-	//Count the number of authors in the array
-	$countauthors = 0;
-	foreach ($contributors as $contributor) {
-		if ($contributor['cselect']=='author') {
-			$countauthors++;
+			return $ret;
+		}
+		if ($startPage < $endPage && ! $hasNonConsecutivePages) {
+			// if start page is less than end page and the pages are consecutive
+			$ret = 'pp. ' . ucwords($startPage) . "-" . ucwords($endPage);
+
+			return $ret;
+		}
+		if ($hasNonConsecutivePages && $nonConsecutivePageNums) {
+			// if the pages are not consecutive and there are page numbers to display
+			$ret = 'pp. ' . $nonConsecutivePageNums;
+
+			return $ret;
 		}
 	}
-	$html = '';
-	for ($i=0; $i<$countcontributors; $i++) {
-		//If this contributor is an author
-		if ($contributors[$i]['cselect']=='author') {
-			if ($i==0) {
-				//First time through the loop
-				if ($countauthors>1) {
-					//There is more than one author
-					$html .= uppercasewords($contributors[$i]['lname']);
-					if (($contributors[$i]['fname'] || $contributors[$i]['mi'])) {
-					//The author is a person and not a corporation
-						//Check for a hyphen in the first name
-						$hyphentest = stripos($contributors[$i]['fname'], '-');
-						if ($hyphentest!=false) {
-							$html .= ', ' . firstinitial($contributors[$i]['fname']) . '.-';
-						}else{
-							$html .= ', ' . firstinitial($contributors[$i]['fname']) . '.';
-						}
-						if ($contributors[$i]['mi']) {
-							$html .= ' ' . uppercasewords($contributors[$i]['mi']) . '., ';
-						}else{
-							$html .= ', ';
-						}
-					}else{
-						//The author is a corporation and not a person
-						$html .= ', ';
-					}
-				}else{
-					//There is only one author
-					if (($contributors[$i]['lname']!='Anonymous') || (!$contributors[$i]['lname'] && !$contributors[$i]['fname'] && !$contributors[$i]['mi'])) {
-						//The author is not Anonymous or blank
-						$html .= uppercasewords($contributors[$i]['lname']);
-						if (($contributors[$i]['fname'] || $contributors[$i]['mi'])) {
-						//The author is a person and not a corporation
-							//Check for a hyphen in the first name
-							$hyphentest = stripos($contributors[$i]['fname'], '-');
-							if ($hyphentest!=false) {
-								$html .= ', ' . firstinitial($contributors[$i]['fname']) . '.-';
-							}else{
-								$html .= ', ' . firstinitial($contributors[$i]['fname']) . '. ';
+
+	/**
+	 * Format page numbers for a scholarly journal citing (APA)
+	 *
+	 * @param $startPage
+	 * @param $endPage
+	 * @param $hasNonConsecutivePages
+	 * @param $nonConsecutivePageNums
+	 *
+	 * @return string
+	 */
+	function formatJournalPageNumbers($startPage, $endPage, $hasNonConsecutivePages, $nonConsecutivePageNums)
+	{
+		if (($startPage == $endPage || $startPage && ! $endPage) && ($startPage && ! $hasNonConsecutivePages)) {
+			// if start page equals end page or there is a start page, but no end page
+			$ret = ucwords($startPage);
+
+			return $ret;
+		}
+		if ($startPage < $endPage && ! $hasNonConsecutivePages) {
+			// if start page is less than end page and the pages are consecutive
+			$ret = ucwords($startPage) . "-" . ucwords($endPage);
+
+			return $ret;
+		}
+		if ($hasNonConsecutivePages && $nonConsecutivePageNums) {
+			// if the pages are not consecutive and there are page numbers to display
+			$ret = $nonConsecutivePageNums;
+
+			return $ret;
+		}
+	}
+
+	/**
+	 * Format the author names (APA)
+	 *
+	 * @param $authors
+	 *
+	 * @return string
+	 */
+	function formatAuthors($authors)
+	{
+		// Count the number of contributors in the array
+		$count = count($authors);
+		// Count the number of authors in the array
+		$numAuthors = 0;
+		foreach ($authors as $contributor) {
+			if ($contributor['cselect'] == 'author') {
+				$numAuthors ++;
+			}
+		}
+		$ret = '';
+		for ($i = 0; $i < $count; $i ++) {
+			// If this contributor is an author
+			if ($authors[ $i ]['cselect'] == 'author') {
+				if ($i == 0) {
+					// First time through the loop
+					if ($numAuthors > 1) {
+						// There is more than one author
+						$ret .= ucwords($authors[ $i ]['lname']);
+						if (($authors[ $i ]['fname'] || $authors[ $i ]['mi'])) {
+							// The author is a person and not a corporation
+							// Check for a hyphen in the first name
+							$hyphentest = stripos($authors[ $i ]['fname'], '-');
+							if ($hyphentest != false) {
+								$ret .= ', ' . Utility::firstInitial($authors[ $i ]['fname']) . '.-';
+							} else {
+								$ret .= ', ' . Utility::firstInitial($authors[ $i ]['fname']) . '.';
 							}
-							if ($contributors[$i]['mi']) {
-								$html .= uppercasewords($contributors[$i]['mi']) . '. ';
+							if ($authors[ $i ]['mi']) {
+								$ret .= ' ' . ucwords($authors[ $i ]['mi']) . '., ';
+							} else {
+								$ret .= ', ';
 							}
-						}else{
-							//The author is a corporation and not a person
-							$html .= '. ';
+						} else {
+							// The author is a corporation and not a person
+							$ret .= ', ';
 						}
-					}
-				}
-			}elseif ($i>=5) {
-				//Sixth or more time through the loop
-				if ($countauthors>7 && $i==5) {
-					//There are more than 7 authors and this is the sixth time through the loop
-					$html .= ' ' . uppercasewords($contributors[$i]['lname']) . ', ';
-					if (($contributors[$i]['fname'] || $contributors[$i]['mi'])) {
-						//The author is a person and not a corporation
-						//Check for a hyphen in the first name
-						$hyphentest = stripos($contributors[$i]['fname'], '-');
-						if ($hyphentest!=false) {
-							$html .= firstinitial($contributors[$i]['fname']) . '.-';
-						}else{
-							$html .= firstinitial($contributors[$i]['fname']) . '.';
-						}
-						if ($contributors[$i]['mi']) {
-							$html .= ' ' . uppercasewords($contributors[$i]['mi']) . '.';
-						}
-						$html .= ', . . . ';
-					}else{
-						//The author is a corporation and not a person
-						$html .= ', . . . ';
-					}
-				}elseif ($countauthors==7 && $i==5) {
-					//There are 7 authors and this is the sixth time through the loop
-					$html .= ' ' . uppercasewords($contributors[$i]['lname']);
-					if (($contributors[$i]['fname'] || $contributors[$i]['mi'])) {
-						//The author is a person and not a corporation
-						//Check for a hyphen in the first name
-						$hyphentest = stripos($contributors[$i]['fname'], '-');
-						if ($hyphentest!=false) {
-							$html .= ', ' . firstinitial($contributors[$i]['fname']) . '.-';
-						}else{
-							$html .= ', ' . firstinitial($contributors[$i]['fname']) . '. ';
-						}
-						if ($contributors[$i]['mi']) {
-							$html .= uppercasewords($contributors[$i]['mi']) . '., & ';	
-						}else{
-							$html .= uppercasewords($contributors[$i]['mi']) . ', & ';	
-						}
-					}else{
-						//The author is a corporation and not a person
-						$html .= ', & ';
-					}
-				}elseif (($i+1)==$countcontributors) {
-					//This is the last time through the loop
-					//If there are 6 authors add an ampersand before the name, otherwise do not
-					if ($countauthors==6) {
-						$html .= ' & ' . uppercasewords($contributors[$i]['lname']);
-						if (($contributors[$i]['fname'] || $contributors[$i]['mi'])) {
-							//The author is a person and not a corporation
-							//Check for a hyphen in the first name
-							$hyphentest = stripos($contributors[$i]['fname'], '-');
-							if ($hyphentest!=false) {
-								$html .= ', ' . firstinitial($contributors[$i]['fname']) . '.-';
-							}else{
-								$html .= ', ' . firstinitial($contributors[$i]['fname']) . '. ';
-							}
-							if ($contributors[$i]['mi']) {
-								$html .= uppercasewords($contributors[$i]['mi']) . '. ';
-							}
-						}else{
-							//The author is a corporation and not a person
-							$html .= '. ';
-						}
-					}else{
-						$html .= ' ' . uppercasewords($contributors[$i]['lname']);
-						if (($contributors[$i]['fname'] || $contributors[$i]['mi'])) {
-							//The author is a person and not a corporation
-							//Check for a hyphen in the first name
-							$hyphentest = stripos($contributors[$i]['fname'], '-');
-							if ($hyphentest!=false) {
-								$html .= ', ' . firstinitial($contributors[$i]['fname']) . '.-';
-							}else{
-								$html .= ', ' . firstinitial($contributors[$i]['fname']) . '. ';
-							}
-							if ($contributors[$i]['mi']) {
-								$html .= uppercasewords($contributors[$i]['mi']) . '. ';
-							}
-						}else{
-							//The author is a corporation and not a person
-							$html .= '. ';
-						}
-					}
-				}
-			}else{
-				if (($i+1)==$countcontributors) {
-					//This is the last time through the loop
-					if ($countauthors>1) {
-						//There is more than one author
-						$html .= ' & ' . uppercasewords($contributors[$i]['lname']);
-						if (($contributors[$i]['fname'] || $contributors[$i]['mi'])) {
-							//The author is a person and not a corporation
-							//Check for a hyphen in the first name
-							$hyphentest = stripos($contributors[$i]['fname'], '-');
-							if ($hyphentest!=false) {
-								$html .= ', ' . firstinitial($contributors[$i]['fname']) . '.-';
-							}else{
-								$html .= ', ' . firstinitial($contributors[$i]['fname']) . '.';
-							}
-							if ($contributors[$i]['mi']) {
-									$html .= ' ' . uppercasewords($contributors[$i]['mi']) . '. ';
-							}
-							$html .= ' ';
-						}else{
-							//The author is a corporation and not a person
-							$html .= '. ';
-						}
-					}else{
-						//There is only one author
-						if (($contributors[$i]['lname']!='Anonymous') || (!$contributors[$i]['lname'] && !$contributors[$i]['fname'] && !$contributors[$i]['mi'])) {
-							//The author is not Anonymous or blank
-							$html .= uppercasewords($contributors[$i]['lname']);
-							if (($contributors[$i]['fname'] || $contributors[$i]['mi'])) {
-								//The author is a person and not a corporation
-								//Check for a hyphen in the first name
-								$hyphentest = stripos($contributors[$i]['fname'], '-');
-								if ($hyphentest!=false) {
-									$html .= ', ' . firstinitial($contributors[$i]['fname']) . '.-';
-								}else{
-									$html .= ', ' . firstinitial($contributors[$i]['fname']) . '. ';
+					} else {
+						// There is only one author
+						if (($authors[ $i ]['lname'] != 'Anonymous') || ( ! $authors[ $i ]['lname'] && ! $authors[ $i ]['fname'] && ! $authors[ $i ]['mi'])) {
+							// The author is not Anonymous or blank
+							$ret .= ucwords($authors[ $i ]['lname']);
+							if (($authors[ $i ]['fname'] || $authors[ $i ]['mi'])) {
+								// The author is a person and not a corporation
+								// Check for a hyphen in the first name
+								$hyphentest = stripos($authors[ $i ]['fname'], '-');
+								if ($hyphentest != false) {
+									$ret .= ', ' . Utility::firstInitial($authors[ $i ]['fname']) . '.-';
+								} else {
+									$ret .= ', ' . Utility::firstInitial($authors[ $i ]['fname']) . '. ';
 								}
-								if ($contributors[$i]['mi']) {
-									$html .= uppercasewords($contributors[$i]['mi']) . '. ';
+								if ($authors[ $i ]['mi']) {
+									$ret .= ucwords($authors[ $i ]['mi']) . '. ';
 								}
-							}else{
-								//The author is a corporation and not a person
-								$html .= '. ';
+							} else {
+								// The author is a corporation and not a person
+								$ret .= '. ';
 							}
 						}
 					}
-				}else{
-					$html .= ' ' . uppercasewords($contributors[$i]['lname']);
-					if (($contributors[$i]['fname'] || $contributors[$i]['mi'])) {
-						//The author is a person and not a corporation
-						//Check for a hyphen in the first name
-						$hyphentest = stripos($contributors[$i]['fname'], '-');
-						if ($hyphentest!=false) {
-							$html .= ', ' . firstinitial($contributors[$i]['fname']) . '.-';
-						}else{
-							$html .= ', ' . firstinitial($contributors[$i]['fname']) . '.';
-						}
-						if ($contributors[$i]['mi']) {
-							$html .= ' ' . uppercasewords($contributors[$i]['mi']) . '.,';
-						}else{
-							$html .= ', ';
-						}
-					}else{
-						//The author is a corporation and not a person
-						$html .= ', ';
-					}
-				}
-			}
-		}	
-	}
-	return $html;
-}
-
-//Format the translator names (APA)
-function apatranslators($contributors) {
-	$countcontributors = count($contributors);
-	//Count the number of authors in the array
-	$countauthors = 0;
-	//Count the number of translators in the array
-	$counttranslators = 0;
-	foreach ($contributors as $contributor) {
-		if ($contributor['cselect']=='author') {
-			$countauthors++;
-		}elseif($contributor['cselect']=='translator') {
-			$counttranslators++;
-		}
-	}
-	$html = '';
-	//Translator iterative counter
-	$t=0;
-	for ($i=0; $i<$countcontributors; $i++) {
-		if ($contributors[$i]['cselect']=='translator') {
-		//If this contributor is an translator
-			if ($t==0) {
-				//First time through the loop
-				if ($counttranslators>1) {
-					//There is more than one translator
-					$html .= '(';
-						$html .= substr(uppercasewords($contributors[$i]['fname']), 0, 1) . '. ';
-						if ($contributors[$i]['mi']) {
-							$html .= uppercasewords($contributors[$i]['mi']) . '. ';
-						}
-					$html .= uppercasewords($contributors[$i]['lname']);
-					if ($counttranslators>2) {
-						//There are more than two translators
-						$html .= ',';
-					}
-				}else{
-					//There is only one translator
-					if (($contributors[$i]['lname']!='Anonymous') || (!$contributors[$i]['lname'] && !$contributors[$i]['fname'] && !$contributors[$i]['mi'])) {
-						//The translator is not Anonymous or blank
-						$html .= '(';
-						$html .= substr(uppercasewords($contributors[$i]['fname']), 0, 1) . '. ';
-						if ($contributors[$i]['mi']) {
-							$html .= uppercasewords($contributors[$i]['mi']) . '. ';
-						}
-						$html .= uppercasewords($contributors[$i]['lname']);
-					}
-				}
-			}elseif (($t+1)==$counttranslators) {
-				//Last time through the loop
-				if ($counttranslators>1) {
-					//There is more than one translator
-					$html .= ' & ' . substr(uppercasewords($contributors[$i]['fname']), 0, 1) . '. ';
-					if ($contributors[$i]['mi']) {
-						$html .= uppercasewords($contributors[$i]['mi']) . '. ';
-					}
-					$html .= uppercasewords($contributors[$i]['lname']);
-				}else{
-					//There is only one translator
-					if (($contributors[$i]['lname']!='Anonymous') || (!$contributors[$i]['lname'] && !$contributors[$i]['fname'] && !$contributors[$i]['mi'])) {
-						//The translator is not Anonymous or blank
-						$html .= '(';
-						$html .= substr(uppercasewords($contributors[$i]['fname']), 0, 1) . '. ';
-						if ($contributors[$i]['mi']) {
-							$html .= uppercasewords($contributors[$i]['mi']) . '. ';
-						}
-						$html .= uppercasewords($contributors[$i]['lname']);
-					}
-				}
-			}elseif (($t+2)==$counttranslators) {
-				//Second to last time through the loop
-				$html .= ' ' . substr(uppercasewords($contributors[$i]['fname']), 0, 1) . '. ';
-				if ($contributors[$i]['mi']) {
-					$html .= uppercasewords($contributors[$i]['mi']) . '. ';
-				}
-				$html .= uppercasewords($contributors[$i]['lname']);				
-			}else{
-				$html .= ' ' . substr(uppercasewords($contributors[$i]['fname']), 0, 1) . '. ';
-				if ($contributors[$i]['mi']) {
-					$html .= uppercasewords($contributors[$i]['mi']) . '. ';
-				}
-				$html .= uppercasewords($contributors[$i]['lname']) . ',';				
-			}
-			$t++;
-		}
-	}
-	if ($counttranslators>0) {
-		$html .= ', Trans.).';
-	}
-	return $html;
-}
-
-//Format the editor names (APA)
-function apaeditors($contributors) {
-	$countcontributors = count($contributors);
-	//Count the number of authors in the array
-	$countauthors = 0;
-	//Count the number of editors in the array
-	$counteditors = 0;
-	foreach ($contributors as $contributor) {
-		if ($contributor['cselect']=='author') {
-			$countauthors++;
-		}elseif($contributor['cselect']=='editor') {
-			$counteditors++;
-		}
-	}
-	$html = '';
-	//editor iterative counter
-	$t=0;
-	for ($i=0; $i<$countcontributors; $i++) {
-		if ($contributors[$i]['cselect']=='editor') {
-		//If this contributor is an editor
-			if ($t==0) {
-				//First time through the loop
-				if ($counteditors>1) {
-					//There is more than one editor
-					$html .= 'In ';
-						if ($contributors[$i]['fname']) {
-							$html .= substr(uppercasewords($contributors[$i]['fname']), 0 ,1) . '. ';
-						}
-						if ($contributors[$i]['mi']) {
-							$html .= ' ' . uppercasewords($contributors[$i]['mi']) . '. ';
-						}
-					$html .= uppercasewords($contributors[$i]['lname']);
-					if ($counteditors>2) {
-						//There are more than two editors
-						$html .= ',';
-					}
-				}else{
-					//There is only one editor
-					$html .= 'In ';
-						if (($contributors[$i]['lname']!='Anonymous') || (!$contributors[$i]['lname'] && !$contributors[$i]['fname'] && !$contributors[$i]['mi'])) {
-							//The editor is not Anonymous or blank
-							if ($contributors[$i]['fname']) {
-								$html .= substr(uppercasewords($contributors[$i]['fname']), 0 ,1) . '. ';
+				} elseif ($i >= 5) {
+					// Sixth or more time through the loop
+					if ($numAuthors > 7 && $i == 5) {
+						// There are more than 7 authors and this is the sixth time through the loop
+						$ret .= ' ' . ucwords($authors[ $i ]['lname']) . ', ';
+						if (($authors[ $i ]['fname'] || $authors[ $i ]['mi'])) {
+							// The author is a person and not a corporation
+							// Check for a hyphen in the first name
+							$hyphentest = stripos($authors[ $i ]['fname'], '-');
+							if ($hyphentest != false) {
+								$ret .= Utility::firstInitial($authors[ $i ]['fname']) . '.-';
+							} else {
+								$ret .= Utility::firstInitial($authors[ $i ]['fname']) . '.';
 							}
-							if ($contributors[$i]['mi']) {
-								$html .= ' ' . uppercasewords($contributors[$i]['mi']) . '. ';
+							if ($authors[ $i ]['mi']) {
+								$ret .= ' ' . ucwords($authors[ $i ]['mi']) . '.';
 							}
-							$html .= uppercasewords($contributors[$i]['lname']);
+							$ret .= ', . . . ';
+						} else {
+							// The author is a corporation and not a person
+							$ret .= ', . . . ';
 						}
-				}
-			}elseif (($t+1)==$counteditors) {
-				//Last time through the loop
-				if ($counteditors>1) {
-					//There is more than one editor
-					if ($contributors[$i]['fname']) {
-							$html .= ' & ' . substr(uppercasewords($contributors[$i]['fname']), 0 ,1) . '. ';
+					} elseif ($numAuthors == 7 && $i == 5) {
+						// There are 7 authors and this is the sixth time through the loop
+						$ret .= ' ' . ucwords($authors[ $i ]['lname']);
+						if (($authors[ $i ]['fname'] || $authors[ $i ]['mi'])) {
+							// The author is a person and not a corporation
+							// Check for a hyphen in the first name
+							$hyphentest = stripos($authors[ $i ]['fname'], '-');
+							if ($hyphentest != false) {
+								$ret .= ', ' . Utility::firstInitial($authors[ $i ]['fname']) . '.-';
+							} else {
+								$ret .= ', ' . Utility::firstInitial($authors[ $i ]['fname']) . '. ';
+							}
+							if ($authors[ $i ]['mi']) {
+								$ret .= ucwords($authors[ $i ]['mi']) . '., & ';
+							} else {
+								$ret .= ucwords($authors[ $i ]['mi']) . ', & ';
+							}
+						} else {
+							// The author is a corporation and not a person
+							$ret .= ', & ';
 						}
-						if ($contributors[$i]['mi']) {
-							$html .= ' ' . uppercasewords($contributors[$i]['mi']) . '. ';
+					} elseif (($i + 1) == $count) {
+						// This is the last time through the loop
+						// If there are 6 authors add an ampersand before the name, otherwise do not
+						if ($numAuthors == 6) {
+							$ret .= ' & ' . ucwords($authors[ $i ]['lname']);
+							if (($authors[ $i ]['fname'] || $authors[ $i ]['mi'])) {
+								// The author is a person and not a corporation
+								// Check for a hyphen in the first name
+								$hyphentest = stripos($authors[ $i ]['fname'], '-');
+								if ($hyphentest != false) {
+									$ret .= ', ' . Utility::firstInitial($authors[ $i ]['fname']) . '.-';
+								} else {
+									$ret .= ', ' . Utility::firstInitial($authors[ $i ]['fname']) . '. ';
+								}
+								if ($authors[ $i ]['mi']) {
+									$ret .= ucwords($authors[ $i ]['mi']) . '. ';
+								}
+							} else {
+								// The author is a corporation and not a person
+								$ret .= '. ';
+							}
+						} else {
+							$ret .= ' ' . ucwords($authors[ $i ]['lname']);
+							if (($authors[ $i ]['fname'] || $authors[ $i ]['mi'])) {
+								// The author is a person and not a corporation
+								// Check for a hyphen in the first name
+								$hyphentest = stripos($authors[ $i ]['fname'], '-');
+								if ($hyphentest != false) {
+									$ret .= ', ' . Utility::firstInitial($authors[ $i ]['fname']) . '.-';
+								} else {
+									$ret .= ', ' . Utility::firstInitial($authors[ $i ]['fname']) . '. ';
+								}
+								if ($authors[ $i ]['mi']) {
+									$ret .= ucwords($authors[ $i ]['mi']) . '. ';
+								}
+							} else {
+								// The author is a corporation and not a person
+								$ret .= '. ';
+							}
 						}
-					$html .= uppercasewords($contributors[$i]['lname']);
-				}else{
-					//There is only one editor
-					if (($contributors[$i]['lname']!='Anonymous') || (!$contributors[$i]['lname'] && !$contributors[$i]['fname'] && !$contributors[$i]['mi'])) {
-						//The editor is not Anonymous or blank
-						if ($contributors[$i]['fname']) {
-							$html .= substr(uppercasewords($contributors[$i]['fname']), 0 ,1) . '. ';
+					}
+				} else {
+					if (($i + 1) == $count) {
+						// This is the last time through the loop
+						if ($numAuthors > 1) {
+							// There is more than one author
+							$ret .= ' & ' . ucwords($authors[ $i ]['lname']);
+							if (($authors[ $i ]['fname'] || $authors[ $i ]['mi'])) {
+								// The author is a person and not a corporation
+								// Check for a hyphen in the first name
+								$hyphentest = stripos($authors[ $i ]['fname'], '-');
+								if ($hyphentest != false) {
+									$ret .= ', ' . Utility::firstInitial($authors[ $i ]['fname']) . '.-';
+								} else {
+									$ret .= ', ' . Utility::firstInitial($authors[ $i ]['fname']) . '.';
+								}
+								if ($authors[ $i ]['mi']) {
+									$ret .= ' ' . ucwords($authors[ $i ]['mi']) . '. ';
+								}
+								$ret .= ' ';
+							} else {
+								// The author is a corporation and not a person
+								$ret .= '. ';
+							}
+						} else {
+							// There is only one author
+							if (($authors[ $i ]['lname'] != 'Anonymous') || ( ! $authors[ $i ]['lname'] && ! $authors[ $i ]['fname'] && ! $authors[ $i ]['mi'])) {
+								// The author is not Anonymous or blank
+								$ret .= ucwords($authors[ $i ]['lname']);
+								if (($authors[ $i ]['fname'] || $authors[ $i ]['mi'])) {
+									// The author is a person and not a corporation
+									// Check for a hyphen in the first name
+									$hyphentest = stripos($authors[ $i ]['fname'], '-');
+									if ($hyphentest != false) {
+										$ret .= ', ' . Utility::firstInitial($authors[ $i ]['fname']) . '.-';
+									} else {
+										$ret .= ', ' . Utility::firstInitial($authors[ $i ]['fname']) . '. ';
+									}
+									if ($authors[ $i ]['mi']) {
+										$ret .= ucwords($authors[ $i ]['mi']) . '. ';
+									}
+								} else {
+									// The author is a corporation and not a person
+									$ret .= '. ';
+								}
+							}
 						}
-						if ($contributors[$i]['mi']) {
-							$html .= ' ' . uppercasewords($contributors[$i]['mi']) . '. ';
+					} else {
+						$ret .= ' ' . ucwords($authors[ $i ]['lname']);
+						if (($authors[ $i ]['fname'] || $authors[ $i ]['mi'])) {
+							// The author is a person and not a corporation
+							// Check for a hyphen in the first name
+							$hyphentest = stripos($authors[ $i ]['fname'], '-');
+							if ($hyphentest != false) {
+								$ret .= ', ' . Utility::firstInitial($authors[ $i ]['fname']) . '.-';
+							} else {
+								$ret .= ', ' . Utility::firstInitial($authors[ $i ]['fname']) . '.';
+							}
+							if ($authors[ $i ]['mi']) {
+								$ret .= ' ' . ucwords($authors[ $i ]['mi']) . '.,';
+							} else {
+								$ret .= ', ';
+							}
+						} else {
+							// The author is a corporation and not a person
+							$ret .= ', ';
 						}
-						$html .= uppercasewords($contributors[$i]['lname']);
 					}
 				}
-			}elseif (($t+2)==$counteditors) {
-				//Second to last time through the loop
-				if ($contributors[$i]['fname']) {
-							$html .= ' ' . substr(uppercasewords($contributors[$i]['fname']), 0 ,1) . '. ';
+			}
+		}
+
+		return $ret;
+	}
+
+	/**
+	 * Format the translator names (APA)
+	 *
+	 * @param array $translators
+	 *
+	 * @return string
+	 */
+	function formatTranslators($translators)
+	{
+		$count = count($translators);
+		// Count the number of authors in the array
+		$numAuthors = 0;
+		// Count the number of translators in the array
+		$numTranslators = 0;
+		foreach ($translators as $contributor) {
+			if ($contributor['cselect'] == 'author') {
+				$numAuthors ++;
+			} elseif ($contributor['cselect'] == 'translator') {
+				$numTranslators ++;
+			}
+		}
+		$ret = '';
+		// Translator iterative counter
+		$t = 0;
+		for ($i = 0; $i < $count; $i ++) {
+			if ($translators[ $i ]['cselect'] == 'translator') {
+				// If this contributor is an translator
+				if ($t == 0) {
+					// First time through the loop
+					if ($numTranslators > 1) {
+						// There is more than one translator
+						$ret .= '(';
+						$ret .= substr(ucwords($translators[ $i ]['fname']), 0, 1) . '. ';
+						if ($translators[ $i ]['mi']) {
+							$ret .= ucwords($translators[ $i ]['mi']) . '. ';
 						}
-						if ($contributors[$i]['mi']) {
-							$html .= ' ' . uppercasewords($contributors[$i]['mi']) . '. ';
+						$ret .= ucwords($translators[ $i ]['lname']);
+						if ($numTranslators > 2) {
+							// There are more than two translators
+							$ret .= ',';
 						}
-				$html .= uppercasewords($contributors[$i]['lname']);				
-			}else{
-				if ($contributors[$i]['fname']) {
-							$html .= ' ' . substr(uppercasewords($contributors[$i]['fname']), 0 ,1) . '. ';
+					} else {
+						// There is only one translator
+						if (($translators[ $i ]['lname'] != 'Anonymous') || ( ! $translators[ $i ]['lname'] && ! $translators[ $i ]['fname'] && ! $translators[ $i ]['mi'])) {
+							// The translator is not Anonymous or blank
+							$ret .= '(';
+							$ret .= substr(ucwords($translators[ $i ]['fname']), 0, 1) . '. ';
+							if ($translators[ $i ]['mi']) {
+								$ret .= ucwords($translators[ $i ]['mi']) . '. ';
+							}
+							$ret .= ucwords($translators[ $i ]['lname']);
 						}
-						if ($contributors[$i]['mi']) {
-							$html .= ' ' . uppercasewords($contributors[$i]['mi']) . '. ';
+					}
+				} elseif (($t + 1) == $numTranslators) {
+					// Last time through the loop
+					if ($numTranslators > 1) {
+						// There is more than one translator
+						$ret .= ' & ' . substr(ucwords($translators[ $i ]['fname']), 0, 1) . '. ';
+						if ($translators[ $i ]['mi']) {
+							$ret .= ucwords($translators[ $i ]['mi']) . '. ';
 						}
-				$html .= uppercasewords($contributors[$i]['lname']) . ',';				
+						$ret .= ucwords($translators[ $i ]['lname']);
+					} else {
+						// There is only one translator
+						if (($translators[ $i ]['lname'] != 'Anonymous') || ( ! $translators[ $i ]['lname'] && ! $translators[ $i ]['fname'] && ! $translators[ $i ]['mi'])) {
+							// The translator is not Anonymous or blank
+							$ret .= '(';
+							$ret .= substr(ucwords($translators[ $i ]['fname']), 0, 1) . '. ';
+							if ($translators[ $i ]['mi']) {
+								$ret .= ucwords($translators[ $i ]['mi']) . '. ';
+							}
+							$ret .= ucwords($translators[ $i ]['lname']);
+						}
+					}
+				} elseif (($t + 2) == $numTranslators) {
+					// Second to last time through the loop
+					$ret .= ' ' . substr(ucwords($translators[ $i ]['fname']), 0, 1) . '. ';
+					if ($translators[ $i ]['mi']) {
+						$ret .= ucwords($translators[ $i ]['mi']) . '. ';
+					}
+					$ret .= ucwords($translators[ $i ]['lname']);
+				} else {
+					$ret .= ' ' . substr(ucwords($translators[ $i ]['fname']), 0, 1) . '. ';
+					if ($translators[ $i ]['mi']) {
+						$ret .= ucwords($translators[ $i ]['mi']) . '. ';
+					}
+					$ret .= ucwords($translators[ $i ]['lname']) . ',';
+				}
+				$t ++;
 			}
-			$t++;
 		}
-	}
-	if ($counteditors==1) {
-		$html .= ' (Ed.),';
-	}
-	if ($counteditors>1) {
-		$html .= ' (Eds.),';
-	}
-	return $html;
-}
+		if ($numTranslators > 0) {
+			$ret .= ', Trans.).';
+		}
 
-//Format an article title (APA)
-function articletitleapaformat($articletitleinput) {
-	//Uppercase the first word in article title
-	$articletitleinput = uppercasefirstword($articletitleinput);
-	//If the article title contains a subtitle, capitalize the first word after the colon
-	if (preg_match('/:[ ]+[a-z]/', $articletitleinput, $regs)) {
-		$articletitleinput = subtitleucfirst($articletitleinput, $regs);
+		return $ret;
 	}
-	//Punctuate after the article title
-	$articletitleinput = articleperiod($articletitleinput);
-	return $articletitleinput;
-}
 
-//Format a book title (APA)
-/**
- * @param string $addpunctuation
- */
-function booktitleapaformat($booktitleinput, $addpunctuation) {
-	//Uppercase the first word in article title
-	$html = uppercasefirstword($booktitleinput);
-	//If the article title contains a subtitle, capitalize the first word after the colon
-	if (preg_match('/:[ ]+[a-z]/', $html, $regs)) {
-		$html = subtitleucfirst($html, $regs);
-	}
-	if ($addpunctuation=="yes") {
-		//Punctuate after the book title, if necessary
-		$html = articleperiod($html);
-	}
-	$html = '<i>' . $html . '</i>';
-	return $html;
-}
+	/**
+	 * Format the editor names (APA)
+	 *
+	 * @param array $editors
+	 *
+	 * @return string
+	 */
+	function formatEditors($editors)
+	{
+		$count = count($editors);
+		// Count the number of authors in the array
+		$numAuthors = 0;
+		// Count the number of editors in the array
+		$numEditors = 0;
+		foreach ($editors as $contributor) {
+			if ($contributor['cselect'] == 'author') {
+				$numAuthors ++;
+			} elseif ($contributor['cselect'] == 'editor') {
+				$numEditors ++;
+			}
+		}
+		$ret = '';
+		// editor iterative counter
+		$t = 0;
+		for ($i = 0; $i < $count; $i ++) {
+			if ($editors[ $i ]['cselect'] == 'editor') {
+				// If this contributor is an editor
+				if ($t == 0) {
+					// First time through the loop
+					if ($numEditors > 1) {
+						// There is more than one editor
+						$ret .= 'In ';
+						if ($editors[ $i ]['fname']) {
+							$ret .= substr(ucwords($editors[ $i ]['fname']), 0, 1) . '. ';
+						}
+						if ($editors[ $i ]['mi']) {
+							$ret .= ' ' . ucwords($editors[ $i ]['mi']) . '. ';
+						}
+						$ret .= ucwords($editors[ $i ]['lname']);
+						if ($numEditors > 2) {
+							// There are more than two editors
+							$ret .= ',';
+						}
+					} else {
+						// There is only one editor
+						$ret .= 'In ';
+						if (($editors[ $i ]['lname'] != 'Anonymous') || ( ! $editors[ $i ]['lname'] && ! $editors[ $i ]['fname'] && ! $editors[ $i ]['mi'])) {
+							// The editor is not Anonymous or blank
+							if ($editors[ $i ]['fname']) {
+								$ret .= substr(ucwords($editors[ $i ]['fname']), 0, 1) . '. ';
+							}
+							if ($editors[ $i ]['mi']) {
+								$ret .= ' ' . ucwords($editors[ $i ]['mi']) . '. ';
+							}
+							$ret .= ucwords($editors[ $i ]['lname']);
+						}
+					}
+				} elseif (($t + 1) == $numEditors) {
+					// Last time through the loop
+					if ($numEditors > 1) {
+						// There is more than one editor
+						if ($editors[ $i ]['fname']) {
+							$ret .= ' & ' . substr(ucwords($editors[ $i ]['fname']), 0, 1) . '. ';
+						}
+						if ($editors[ $i ]['mi']) {
+							$ret .= ' ' . ucwords($editors[ $i ]['mi']) . '. ';
+						}
+						$ret .= ucwords($editors[ $i ]['lname']);
+					} else {
+						// There is only one editor
+						if (($editors[ $i ]['lname'] != 'Anonymous') || ( ! $editors[ $i ]['lname'] && ! $editors[ $i ]['fname'] && ! $editors[ $i ]['mi'])) {
+							// The editor is not Anonymous or blank
+							if ($editors[ $i ]['fname']) {
+								$ret .= substr(ucwords($editors[ $i ]['fname']), 0, 1) . '. ';
+							}
+							if ($editors[ $i ]['mi']) {
+								$ret .= ' ' . ucwords($editors[ $i ]['mi']) . '. ';
+							}
+							$ret .= ucwords($editors[ $i ]['lname']);
+						}
+					}
+				} elseif (($t + 2) == $numEditors) {
+					// Second to last time through the loop
+					if ($editors[ $i ]['fname']) {
+						$ret .= ' ' . substr(ucwords($editors[ $i ]['fname']), 0, 1) . '. ';
+					}
+					if ($editors[ $i ]['mi']) {
+						$ret .= ' ' . ucwords($editors[ $i ]['mi']) . '. ';
+					}
+					$ret .= ucwords($editors[ $i ]['lname']);
+				} else {
+					if ($editors[ $i ]['fname']) {
+						$ret .= ' ' . substr(ucwords($editors[ $i ]['fname']), 0, 1) . '. ';
+					}
+					if ($editors[ $i ]['mi']) {
+						$ret .= ' ' . ucwords($editors[ $i ]['mi']) . '. ';
+					}
+					$ret .= ucwords($editors[ $i ]['lname']) . ',';
+				}
+				$t ++;
+			}
+		}
+		if ($numEditors == 1) {
+			$ret .= ' (Ed.),';
+		}
+		if ($numEditors > 1) {
+			$ret .= ' (Eds.),';
+		}
 
-/********************************/
-/*     Citation parsing         */
-/********************************/
+		return $ret;
+	}
 
-//Creates a book (in entirety) citation
-function apa6bookcite($style, $medium, $contributors, $publicationyearinput, $booktitleinput, $publisherlocationinput, $publisherinput, $websitetitleinput, $webaccessdateday, $webaccessdatemonth, $webaccessdateyear, $urlwebsiteinput, $doiwebsiteinput, $databaseinput, $dbaccessdateday, $dbaccessdatemonth, $dbaccessdateyear, $urldbinput, $doidbinput, $yearpublishedinput, $mediuminput, $urlebookinput, $doiebookinput) {
-	//Add the contributors
-	$html = apaauthorformat($contributors);
-	//Add the publishing date (if provided)
-	if ($publicationyearinput) {
-		$html .= ' (' . $publicationyearinput . '). ';
-	}
-	//Add the book title (if provided)
-	if ($booktitleinput) {
-		$html .= booktitleapaformat($booktitleinput, "yes") . ' ';
-	}
-	//Add the translators (if provided)
-	$html .= apatranslators($contributors) . ' ';
-	//Add the editors (if provided)
-	$html .= apaeditors($contributors) . ' ';
-	//in print
-		if ($medium=="print") {
-			//Add the publisher location (if provided)
-			if ($publisherlocationinput) {
-				$html .= uppercasewords($publisherlocationinput) . ': ';
-			}
-			//Add the publisher (if provided)
-			if ($publisherinput) {
-				$html .= uppercasewords($publisherinput) . '.';
-			}
+	/**
+	 * Format an article title (APA)
+	 *
+	 * @param $articleTitle
+	 *
+	 * @return string
+	 */
+	function formatTitle($articleTitle)
+	{
+	// Uppercase the first word in article title
+		$articleTitle = ucfirst(strtolower($articleTitle));
+	// If the article title contains a subtitle, capitalize the first word after the colon
+		if (preg_match('/:[ ]+[a-z]/', $articleTitle, $matches)) {
+			$articleTitle = Utility::uppercaseSubtitle($articleTitle);
 		}
-	//on a website
-		if ($medium=="website") {
-			//Add the URL (if provided)
-			if ($urlwebsiteinput) {
-				$html .= 'Retrieved from ' . checkurlprepend($urlwebsiteinput);
-			}elseif($doiwebsiteinput) {
-				//Add the DOI (if provided)
-				$html .= 'doi:' . $doiwebsiteinput;
-			}
-		}
-	//in a database
-		if ($medium=="db") {
-			//Add the URL (if provided)
-			if ($urldbinput) {
-				$html .= 'Retrieved from ' . checkurlprepend($urldbinput);
-			}elseif($doidbinput) {
-				//Add the DOI (if provided)
-				$html .= 'doi:' . $doidbinput;
-			}
-		}
-	//as an ebook
-		if ($medium=="ebook") {
-			//Add the URL (if provided)
-			if ($urlebookinput) {
-				$html .= 'Retrieved from ' . checkurlprepend($urlebookinput);
-			}elseif($doiebookinput) {
-				//Add the DOI (if provided)
-				$html .= 'doi:' . $doiebookinput;
-			}
-		}
-	echo $html;
-}
+	// Punctuate after the article title
+		$articleTitle = Utility::addPeriod($articleTitle);
 
-//Creates a chapter or essay from a book citation
-function apa6chapteressaycite($style, $medium, $contributors, $publicationyearinput, $chapteressayinput, $booktitleinput, $pagesstartinput, $pagesendinput, $pagesnonconsecutiveinput, $pagesnonconsecutivepagenumsinput, $publisherlocationinput, $publisherinput, $websitetitleinput, $webaccessdateday, $webaccessdatemonth, $webaccessdateyear, $urlwebsiteinput, $doiwebsiteinput, $databaseinput, $dbaccessdateday, $dbaccessdatemonth, $dbaccessdateyear, $urldbinput, $doidbinput) {
-	//Add the contributors
-	$html = apaauthorformat($contributors);
-	//Add the publishing date (if provided)
-	if ($publicationyearinput) {
-		$html .= ' (' . $publicationyearinput . '). ';
+		return $articleTitle;
 	}
-	//Add the chapter/essay title (if provided)
-	if ($chapteressayinput) {
-		$html .= articletitleapaformat($chapteressayinput) . ' ';
-	}
-	//Add the translators (if provided)
-	$html .= apatranslators($contributors) . ' ';
-	//Add the editors (if provided)
-	if (apaeditors($contributors)) {
-		$html .= apaeditors($contributors) . ' ';
-	}else{
-		$html .= 'In ';
-	}
-	//Add the book title and page numbers (if provided)
-	$pageholder = apanewspaperpages($pagesstartinput, $pagesendinput, $pagesnonconsecutiveinput, $pagesnonconsecutivepagenumsinput);
-	if ($pageholder) {
-		//There are page numbers to display
-		if ($booktitleinput) {
-			//There is a book title to display
-			$html .= booktitleapaformat($booktitleinput, "no") . ' ';
-		}
-		$html .= '(' . $pageholder . '). ';
-	}else{
-		//There are no page numbers to display
-		if ($booktitleinput) {
-			//There is a book title to display
-			$html .= booktitleapaformat($booktitleinput, "yes") . ' ';
-		}
-	}
-	//Add the publisher location (if provided)
-	if ($publisherlocationinput) {
-		$html .= uppercasewords($publisherlocationinput) . ': ';
-	}
-	//Add the publisher (if provided)
-	if ($publisherinput) {
-		$html .= uppercasewords($publisherinput) . '. ';
-	}
-	//on a website
-		if ($medium=="website") {
-			//Add the URL (if provided)
-			if ($urlwebsiteinput) {
-				$html .= 'Retrieved from ' . checkurlprepend($urlwebsiteinput);
-			}elseif($doiwebsiteinput) {
-				//Add the DOI (if provided)
-				$html .= 'doi:' . $doiwebsiteinput;
-			}
-		}
-	//in a database
-		if ($medium=="db") {
-			//Add the URL (if provided)
-			if ($urldbinput) {
-				$html .= 'Retrieved from ' . checkurlprepend($urldbinput);
-			}elseif($doidbinput) {
-				//Add the DOI (if provided)
-				$html .= 'doi:' . $doidbinput;
-			}
-		}
-	echo $html;
-}
 
-//Creates a magazine article citation
-function apa6magazinecite($style, $medium, $contributors, $articletitleinput, $magazinetitleinput, $datepublishedday, $datepublishedmonth, $datepublishedyear, $pagesstartinput, $pagesendinput, $pagesnonconsecutiveinput, $pagesnonconsecutivepagenumsinput, $printadvancedinfovolume, $printadvancedinfoissue, $websitetitleinput, $webpagesstartinput, $webpagesendinput, $webpagesnonconsecutiveinput, $webpagesnonconsecutivepagenumsinput, $websiteadvancedinfovolume, $websiteadvancedinfoissue, $webaccessdateday, $webaccessdatemonth, $webaccessdateyear, $urlwebsiteinput, $dbpagesstartinput, $dbpagesendinput, $dbpagesnonconsecutiveinput, $dbadvancedinfovolume, $dbadvancedinfoissue, $databaseinput, $dbaccessdateday, $dbaccessdatemonth, $dbaccessdateyear, $urldbinput) {
-	//Add the contributors
-	$html = apaauthorformat($contributors);
-	//Add the publishing date
-	$html .= apamagnewsdate($datepublishedday, $datepublishedmonth, $datepublishedyear) . '. ';
-	//Add the article title (if provided)
-	if ($articletitleinput) {
-		$html .= articletitleapaformat($articletitleinput) . ' ';
+	/**
+	 * Format a book title (APA)
+	 *
+	 * @param string $addpunctuation
+	 *
+	 * @return string
+	 */
+	function formatBookTitle($title)
+	{
+	// Uppercase the first word in article title
+		$ret = ucfirst(strtolower($title));
+	// If the article title contains a subtitle, capitalize the first word after the colon
+		$ret = Utility::uppercaseSubtitle($ret);
+	// Punctuate after the book title, if necessary
+		$ret = Utility::addPeriod($ret);
+		$ret = '<i>' . $ret . '</i>';
+
+		return $ret;
 	}
-	//Add the magazine title (if provided)
-	if ($magazinetitleinput) {
-		$magtitleholder = uppercasewords($magazinetitleinput);
-		$html .= '<i>' . forcearticlelower($magtitleholder) . '</i>';
-	}
-	if ($medium=="print") {
-		//Add the volume and issue numbers (if provided)
-		if ($printadvancedinfovolume || $printadvancedinfoissue) {
-			//Add a comma after the magazine title (if provided)
-			if ($magazinetitleinput) {
-				$html .= ', ';
+
+	/********************************/
+	/*     Citation parsing         */
+	/********************************/
+
+	/** Creates a book (in entirety) citation */
+	function citeBook($medium, $contributors, $publicationYear, $bookTitle, $publisherLocation, $publisher,
+		$webUrl, $webDoi, $dbUrl, $dbDoi, $medium, $ebookUrl, $ebookDoi)
+	{
+		// Add the contributors
+		$ret = $this->formatAuthors($contributors);
+		// Add the publishing date (if provided)
+		if ($publicationYear) {
+			$ret .= ' (' . $publicationYear . '). ';
+		}
+		// Add the book title (if provided)
+		if ($bookTitle) {
+			$ret .= $this->formatBookTitle($bookTitle, "yes") . ' ';
+		}
+		// Add the translators (if provided)
+		$ret .= $this->formatTranslators($contributors) . ' ';
+		// Add the editors (if provided)
+		$ret .= $this->formatEditors($contributors) . ' ';
+		// in print
+		if ($medium == "print") {
+			// Add the publisher location (if provided)
+			if ($publisherLocation) {
+				$ret .= ucwords($publisherLocation) . ': ';
 			}
-			$html .= '<i>' . $printadvancedinfovolume . '</i>';
-			if ($printadvancedinfoissue) {
-				//Add the issue number (if provided)
-				$html .= '(' . $printadvancedinfoissue . ')';
+			// Add the publisher (if provided)
+			if ($publisher) {
+				$ret .= ucwords($publisher) . '.';
 			}
 		}
-		//Add the page numbers (if provided)
-		$pageholder = apascholarjournalpages($pagesstartinput, $pagesendinput, $pagesnonconsecutiveinput, $pagesnonconsecutivepagenumsinput);
+		// on a website
+		if ($medium == "website") {
+			// Add the URL (if provided)
+			if ($webUrl) {
+				$ret .= 'Retrieved from ' . Utility::checkUrlPrepend($webUrl);
+			} elseif ($webDoi) {
+				// Add the DOI (if provided)
+				$ret .= 'doi:' . $webDoi;
+			}
+		}
+		// in a database
+		if ($medium == "db") {
+			// Add the URL (if provided)
+			if ($dbUrl) {
+				$ret .= 'Retrieved from ' . Utility::checkUrlPrepend($dbUrl);
+			} elseif ($dbDoi) {
+				// Add the DOI (if provided)
+				$ret .= 'doi:' . $dbDoi;
+			}
+		}
+		// as an ebook
+		if ($medium == "ebook") {
+			// Add the URL (if provided)
+			if ($ebookUrl) {
+				$ret .= 'Retrieved from ' . Utility::checkUrlPrepend($ebookUrl);
+			} elseif ($ebookDoi) {
+				// Add the DOI (if provided)
+				$ret .= 'doi:' . $ebookDoi;
+			}
+		}
+		echo $ret;
+	}
+
+	/** Creates a chapter or essay from a book citation */
+	function siteChapterEssay($medium, $contributors, $publicationYear, $chapterEssay, $bookTitle,
+		$startPage, $endPage, $hasNonConsecutivePages, $nonConsecutivePageNums, $publisherLocation, $publisher,
+		$webUrl, $webDoi, $dbUrl, $dbDoi)
+	{
+		// Add the contributors
+		$ret = $this->formatAuthors($contributors);
+		// Add the publishing date (if provided)
+		if ($publicationYear) {
+			$ret .= ' (' . $publicationYear . '). ';
+		}
+		// Add the chapter/essay title (if provided)
+		if ($chapterEssay) {
+			$ret .= $this->formatTitle($chapterEssay) . ' ';
+		}
+		// Add the translators (if provided)
+		$ret .= $this->formatTranslators($contributors) . ' ';
+		// Add the editors (if provided)
+		if ($this->formatEditors($contributors)) {
+			$ret .= $this->formatEditors($contributors) . ' ';
+		} else {
+			$ret .= 'In ';
+		}
+		// Add the book title and page numbers (if provided)
+		$pageholder = $this->formatNewspaperPageNumbers($startPage, $endPage, $hasNonConsecutivePages, $nonConsecutivePageNums);
 		if ($pageholder) {
-			//There are page numbers
-			if ($printadvancedinfovolume || $printadvancedinfoissue) {
-				//There is a volume & issue number preceeding
-				$html .= ', ' . $pageholder;
-			}else{
-				//There is no volume & issue number preceeding
-				if ($magazinetitleinput) {
-					//There is a magazine title preceeding
-					$html .= ', ' . $pageholder;
-				}else{
-					//There is no magazine title preceeding
-					$html .= $pageholder;
+			// There are page numbers to display
+			if ($bookTitle) {
+				// There is a book title to display
+				$ret .= $this->formatBookTitle($bookTitle, "no") . ' ';
+			}
+			$ret .= '(' . $pageholder . '). ';
+		} else {
+			// There are no page numbers to display
+			if ($bookTitle) {
+				// There is a book title to display
+				$ret .= $this->formatBookTitle($bookTitle, "yes") . ' ';
+			}
+		}
+		// Add the publisher location (if provided)
+		if ($publisherLocation) {
+			$ret .= ucwords($publisherLocation) . ': ';
+		}
+		// Add the publisher (if provided)
+		if ($publisher) {
+			$ret .= ucwords($publisher) . '. ';
+		}
+		// on a website
+		if ($medium == "website") {
+			// Add the URL (if provided)
+			if ($webUrl) {
+				$ret .= 'Retrieved from ' . Utility::checkUrlPrepend($webUrl);
+			} elseif ($webDoi) {
+				// Add the DOI (if provided)
+				$ret .= 'doi:' . $webDoi;
+			}
+		}
+		// in a database
+		if ($medium == "db") {
+			// Add the URL (if provided)
+			if ($dbUrl) {
+				$ret .= 'Retrieved from ' . Utility::checkUrlPrepend($dbUrl);
+			} elseif ($dbDoi) {
+				// Add the DOI (if provided)
+				$ret .= 'doi:' . $dbDoi;
+			}
+		}
+		echo $ret;
+	}
+
+	/** Creates a magazine article citation */
+	function citeMagazine($medium, $contributors, $articleTitle, $magazineTitle, $day, $month, $year,
+		$startPage, $endPage, $hasNonConsecutivePages, $nonConsecutivePageNums, $printAdvancedInfoVolume, $printAdvancedInfoIssue,
+		$webStartPage, $webEndPage, $webHasNonConsecutive, $webNonConsecutivePageNums, $webAdvancedInfoVolume, $webAdvancedInfoIssue,
+		$webUrl, $dbStartPage, $dbEndPage, $dbHasNonConsecutive, $dbAdvancedInfoVolume, $dbAdvancedInfoIssue, $dbUrl)
+	{
+		// Add the contributors
+		$ret = $this->formatAuthors($contributors);
+		// Add the publishing date
+		$ret .= $this->formatPublishDate($day, $month, $year) . '. ';
+		// Add the article title (if provided)
+		if ($articleTitle) {
+			$ret .= $this->formatTitle($articleTitle) . ' ';
+		}
+		// Add the magazine title (if provided)
+		if ($magazineTitle) {
+			$magtitleholder = ucwords($magazineTitle);
+			$ret .= '<i>' . Utility::lowerArticles($magtitleholder) . '</i>';
+		}
+		if ($medium == "print") {
+			// Add the volume and issue numbers (if provided)
+			if ($printAdvancedInfoVolume || $printAdvancedInfoIssue) {
+				// Add a comma after the magazine title (if provided)
+				if ($magazineTitle) {
+					$ret .= ', ';
+				}
+				$ret .= '<i>' . $printAdvancedInfoVolume . '</i>';
+				if ($printAdvancedInfoIssue) {
+					// Add the issue number (if provided)
+					$ret .= '(' . $printAdvancedInfoIssue . ')';
 				}
 			}
-		}
-		//Add a period
-		$html .= '. ';
-	}
-	if ($medium=="website") {
-		//Add the volume and issue numbers (if provided)
-		if ($websiteadvancedinfovolume || $websiteadvancedinfoissue) {
-			//Add a comma after the magazine title (if provided)
-			if ($magazinetitleinput) {
-				$html .= ', ';
-			}
-			$html .= '<i>' . $websiteadvancedinfovolume . '</i>';
-			if ($websiteadvancedinfoissue) {
-				//Add the issue number (if provided)
-				$html .= '(' . $websiteadvancedinfoissue . ')';
-			}
-		}
-		//Add the page numbers (if provided)
-		$pageholder = apascholarjournalpages($webpagesstartinput, $webpagesendinput, $webpagesnonconsecutiveinput, $webpagesnonconsecutivepagenumsinput);
-		if ($pageholder) {
-			//There are page numbers
-			if ($printadvancedinfovolume || $printadvancedinfoissue) {
-				//There is a volume & issue number preceeding
-				$html .= ', ' . $pageholder;
-			}else{
-				//There is no volume & issue number preceeding
-				if ($magazinetitleinput) {
-					//There is a magazine title preceeding
-					$html .= ', ' . $pageholder;
-				}else{
-					//There is no magazine title preceeding
-					$html .= $pageholder;
+			// Add the page numbers (if provided)
+			$pageholder = $this->formatJournalPageNumbers($startPage, $endPage, $hasNonConsecutivePages, $nonConsecutivePageNums);
+			if ($pageholder) {
+				// There are page numbers
+				if ($printAdvancedInfoVolume || $printAdvancedInfoIssue) {
+					// There is a volume & issue number preceeding
+					$ret .= ', ' . $pageholder;
+				} else {
+					// There is no volume & issue number preceeding
+					if ($magazineTitle) {
+						// There is a magazine title preceeding
+						$ret .= ', ' . $pageholder;
+					} else {
+						// There is no magazine title preceeding
+						$ret .= $pageholder;
+					}
 				}
 			}
+			// Add a period
+			$ret .= '. ';
 		}
-		//Add a period
-		$html .= '. ';
-		//Add the URL (if provided)
-		if ($urlwebsiteinput) {
-			$html .= 'Retrieved from ' . checkurlprepend($urlwebsiteinput);
-		}
-	}
-	if ($medium=="db") {
-		//Add the volume and issue numbers (if provided)
-		if ($dbadvancedinfovolume || $dbadvancedinfoissue) {
-			//Add a comma after the magazine title (if provided)
-			if ($magazinetitleinput) {
-				$html .= ', ';
-			}
-			$html .= '<i>' . $dbadvancedinfovolume . '</i>';
-			if ($dbadvancedinfoissue) {
-				//Add the issue number (if provided)
-				$html .= '(' . $dbadvancedinfoissue . ')';
-			}
-		}
-		//Add the page numbers (if provided)
-		$pageholder = apascholarjournalpages($dbpagesstartinput, $dbpagesendinput, $dbpagesnonconsecutiveinput, $dbpagesnonconsecutivepagenumsinput);
-		if ($pageholder) {
-			//There are page numbers
-			if ($dbadvancedinfovolume || $dbadvancedinfoissue) {
-				//There is a volume & issue number preceeding
-				$html .= ', ' . $pageholder;
-			}else{
-				//There is no volume & issue number preceeding
-				if ($magazinetitleinput) {
-					//There is a magazine title preceeding
-					$html .= ', ' . $pageholder;
-				}else{
-					//There is no magazine title preceeding
-					$html .= $pageholder;
+		if ($medium == "website") {
+			// Add the volume and issue numbers (if provided)
+			if ($webAdvancedInfoVolume || $webAdvancedInfoIssue) {
+				// Add a comma after the magazine title (if provided)
+				if ($magazineTitle) {
+					$ret .= ', ';
+				}
+				$ret .= '<i>' . $webAdvancedInfoVolume . '</i>';
+				if ($webAdvancedInfoIssue) {
+					// Add the issue number (if provided)
+					$ret .= '(' . $webAdvancedInfoIssue . ')';
 				}
 			}
-		}
-		//Add a period
-		$html .= '. ';
-		//Add the URL (if provided)
-		if ($urldbinput) {
-			$html .= 'Retrieved from ' . checkurlprepend($urldbinput);
-		}
-	}
-	echo $html;
-}
-
-//Creates a newspaper article citation
-function apa6newspapercite($style, $medium, $contributors, $articletitleinput, $newspapertitleinput, $newspapercityinput, $datepublishedday, $datepublishedmonth, $datepublishedyear, $editioninput, $sectioninput, $pagesstartinput, $pagesendinput, $pagesnonconsecutiveinput, $pagesnonconsecutivepagenumsinput, $websitetitleinput, $urlwebsiteinput, $electronicpublishday, $electronicpublishmonth, $electronicpublishyear, $webaccessdateday, $webaccessdatemonth, $webaccessdateyear, $dbnewspapercityinput, $dbdatepublisheddateday, $dbdatepublisheddatemonth, $dbdatepublisheddateyear, $dbeditioninput, $dbpagesstartinput, $dbpagesendinput, $dbpagesnonconsecutiveinput, $databaseinput, $dbaccessdateday, $dbaccessdatemonth, $dbaccessdateyear, $urldbinput) {
-	//Add the contributors
-	$html = apaauthorformat($contributors);
-	//Add the publishing date
-	if ($medium=="print") {
-		$html .= apamagnewsdate($datepublishedday, $datepublishedmonth, $datepublishedyear) . '. ';
-	}
-	if ($medium=="website") {
-		$html .= apamagnewsdate($electronicpublishday, $electronicpublishmonth, $electronicpublishyear) . '. ';
-	}
-	if ($medium=="db") {
-		$html .= apamagnewsdate($dbdatepublisheddateday, $dbdatepublisheddatemonth, $dbdatepublisheddateyear) . '. ';
-	}
-	//Add the article title (if provided)
-	if ($articletitleinput) {
-		$html .= articletitleapaformat($articletitleinput) . ' ';
-	}
-	//in print
-		if ($medium=="print") {
-			//Add the newspaper title
-			$html .= '<i>' . uppercasewords($newspapertitleinput) . '</i>';
-			//Add a comma after the newspaper title
-			$html .= ', ';
-			//Add the page numbers
-			$html .= apanewspaperpages($pagesstartinput, $pagesendinput, $pagesnonconsecutiveinput, $pagesnonconsecutivepagenumsinput) . '.';
-		}
-	//on a website
-		if ($medium=="website") {
-			//Add the newspaper title
-			$html .= '<i>' . uppercasewords($newspapertitleinput) . '</i>';
-			//Add a period after the newspaper title
-			$html .= '. ';
-			//Add the Home page URL (if provided)
-			if ($urlwebsiteinput) {
-				//Add the URL
-				$html .= 'Retrieved from ' . $urlwebsiteinput;
+			// Add the page numbers (if provided)
+			$pageholder = $this->formatJournalPageNumbers($webStartPage, $webEndPage, $webHasNonConsecutive, $webNonConsecutivePageNums);
+			if ($pageholder) {
+				// There are page numbers
+				if ($printAdvancedInfoVolume || $printAdvancedInfoIssue) {
+					// There is a volume & issue number preceeding
+					$ret .= ', ' . $pageholder;
+				} else {
+					// There is no volume & issue number preceeding
+					if ($magazineTitle) {
+						// There is a magazine title preceeding
+						$ret .= ', ' . $pageholder;
+					} else {
+						// There is no magazine title preceeding
+						$ret .= $pageholder;
+					}
+				}
+			}
+			// Add a period
+			$ret .= '. ';
+			// Add the URL (if provided)
+			if ($webUrl) {
+				$ret .= 'Retrieved from ' . Utility::checkUrlPrepend($webUrl);
 			}
 		}
-	//in a database
-		if ($medium=="db") {
-			//Add the newspaper title
-			$html .= '<i>' . uppercasewords($newspapertitleinput) . '</i>';
-			//Add a period after the newspaper title
-			$html .= '. ';
-			//Add the Home page URL (if provided)
-			if ($urldbinput) {
-				//Add the URL
-				$html .= 'Retrieved from ' . $urldbinput;
+		if ($medium == "db") {
+			// Add the volume and issue numbers (if provided)
+			if ($dbAdvancedInfoVolume || $dbAdvancedInfoIssue) {
+				// Add a comma after the magazine title (if provided)
+				if ($magazineTitle) {
+					$ret .= ', ';
+				}
+				$ret .= '<i>' . $dbAdvancedInfoVolume . '</i>';
+				if ($dbAdvancedInfoIssue) {
+					// Add the issue number (if provided)
+					$ret .= '(' . $dbAdvancedInfoIssue . ')';
+				}
+			}
+			// Add the page numbers (if provided)
+			$pageholder = $this->formatJournalPageNumbers($dbStartPage, $dbEndPage, $dbHasNonConsecutive, '');
+			if ($pageholder) {
+				// There are page numbers
+				if ($dbAdvancedInfoVolume || $dbAdvancedInfoIssue) {
+					// There is a volume & issue number preceeding
+					$ret .= ', ' . $pageholder;
+				} else {
+					// There is no volume & issue number preceeding
+					if ($magazineTitle) {
+						// There is a magazine title preceeding
+						$ret .= ', ' . $pageholder;
+					} else {
+						// There is no magazine title preceeding
+						$ret .= $pageholder;
+					}
+				}
+			}
+			// Add a period
+			$ret .= '. ';
+			// Add the URL (if provided)
+			if ($dbUrl) {
+				$ret .= 'Retrieved from ' . Utility::checkUrlPrepend($dbUrl);
 			}
 		}
-	echo $html;
-}
+		echo $ret;
+	}
 
-//Creates a scholarly journal article citation
-function apa6scholarjournalcite($style, $medium, $contributors, $yearpublishedinput, $articletitleinput, $journaltitleinput, $volume, $issue, $pagesstartinput, $pagesendinput, $pagesnonconsecutiveinput, $pagesnonconsecutivepagenumsinput, $urlwebsiteinput, $doiwebsiteinput, $webaccessdateday, $webaccessdatemonth, $webaccessdateyear, $databaseinput, $dbaccessdateday, $dbaccessdatemonth, $dbaccessdateyear, $urldbinput, $doidbinput) {
-	//Add the contributors
-	$html = apaauthorformat($contributors);
-	//Add the publishing date (if provided)
-	if ($yearpublishedinput) {
-		$html .= ' (' . $yearpublishedinput . '). ';
-	}
-	//Add the article title (if provided)
-	if ($articletitleinput) {
-		$html .= articletitleapaformat($articletitleinput) . ' ';
-	}
-	//Add the journal title (if provided)
-	if ($journaltitleinput) {
-		$journaltitleholder = uppercasewords($journaltitleinput);
-		$html .= '<i>' . forcearticlelower($journaltitleholder) . '</i>';
-	}
-	//Add the volume and issue numbers (if provided)
-	if ($volume || $issue) {
-		//Add a comma after the journal title (if provided)
-		if ($journaltitleinput) {
-			$html .= ', ';
+	/** Creates a newspaper article citation */
+	function citeNewspaper($medium, $contributors, $articleTitle, $newspaperTitle, $day, $month, $year,
+		$startPage, $endPage, $hasNonConsecutivePages, $nonConsecutivePageNums, $webUrl,
+		$electronicPublishDay, $electronicPublishMonth, $electronicPublishYear,
+		$dbPublishedDay, $dbPublishedMonth, $dbPublishedYear, $dbUrl)
+	{
+		// Add the contributors
+		$ret = $this->formatAuthors($contributors);
+		// Add the publishing date
+		if ($medium == "print") {
+			$ret .= $this->formatPublishDate($day, $month, $year) . '. ';
 		}
-		$html .= '<i>' . $volume . '</i>';
-		if ($issue) {
-			//Add the issue number (if provided)
-			$html .= '(' . $issue . ')';
+		if ($medium == "website") {
+			$ret .= $this->formatPublishDate($electronicPublishDay, $electronicPublishMonth, $electronicPublishYear) . '. ';
 		}
+		if ($medium == "db") {
+			$ret .= $this->formatPublishDate($dbPublishedDay, $dbPublishedMonth, $dbPublishedYear) . '. ';
+		}
+		// Add the article title (if provided)
+		if ($articleTitle) {
+			$ret .= $this->formatTitle($articleTitle) . ' ';
+		}
+		// in print
+		if ($medium == "print") {
+			// Add the newspaper title
+			$ret .= '<i>' . ucwords($newspaperTitle) . '</i>';
+			// Add a comma after the newspaper title
+			$ret .= ', ';
+			// Add the page numbers
+			$ret .= $this->formatNewspaperPageNumbers($startPage, $endPage, $hasNonConsecutivePages, $nonConsecutivePageNums) . '.';
+		}
+		// on a website
+		if ($medium == "website") {
+			// Add the newspaper title
+			$ret .= '<i>' . ucwords($newspaperTitle) . '</i>';
+			// Add a period after the newspaper title
+			$ret .= '. ';
+			// Add the Home page URL (if provided)
+			if ($webUrl) {
+				// Add the URL
+				$ret .= 'Retrieved from ' . $webUrl;
+			}
+		}
+		// in a database
+		if ($medium == "db") {
+			// Add the newspaper title
+			$ret .= '<i>' . ucwords($newspaperTitle) . '</i>';
+			// Add a period after the newspaper title
+			$ret .= '. ';
+			// Add the Home page URL (if provided)
+			if ($dbUrl) {
+				// Add the URL
+				$ret .= 'Retrieved from ' . $dbUrl;
+			}
+		}
+		echo $ret;
 	}
-	//Add the page numbers (if provided)
-	$pageholder = apascholarjournalpages($pagesstartinput, $pagesendinput, $pagesnonconsecutiveinput, $pagesnonconsecutivepagenumsinput);
-	if ($pageholder) {
-		//There are page numbers
+
+	/** Creates a scholarly journal article citation */
+	function citeJournal($medium, $contributors, $yearPublished, $articleTitle, $journalTitle,
+		$volume, $issue, $startPage, $endPage, $hasNonConsecutivePages, $nonConsecutivePageNums, $webUrl, $webDoi,
+		$dbUrl, $dbDoi)
+	{
+		// Add the contributors
+		$ret = $this->formatAuthors($contributors);
+		// Add the publishing date (if provided)
+		if ($yearPublished) {
+			$ret .= ' (' . $yearPublished . '). ';
+		}
+		// Add the article title (if provided)
+		if ($articleTitle) {
+			$ret .= $this->formatTitle($articleTitle) . ' ';
+		}
+		// Add the journal title (if provided)
+		if ($journalTitle) {
+			$journalTitleholder = ucwords($journalTitle);
+			$ret .= '<i>' . Utility::lowerArticles($journalTitleholder) . '</i>';
+		}
+		// Add the volume and issue numbers (if provided)
 		if ($volume || $issue) {
-			//There is a volume & issue number preceeding
-			$html .= ', ' . $pageholder;
-		}else{
-			//There is no volume & issue number preceeding
-			if ($journaltitleinput) {
-				//There is a magazine title preceeding
-				$html .= ', ' . $pageholder;
-			}else{
-				//There is no journal title preceeding
-				$html .= $pageholder;
+			// Add a comma after the journal title (if provided)
+			if ($journalTitle) {
+				$ret .= ', ';
+			}
+			$ret .= '<i>' . $volume . '</i>';
+			if ($issue) {
+				// Add the issue number (if provided)
+				$ret .= '(' . $issue . ')';
 			}
 		}
+		// Add the page numbers (if provided)
+		$pageholder = $this->formatJournalPageNumbers($startPage, $endPage, $hasNonConsecutivePages, $nonConsecutivePageNums);
+		if ($pageholder) {
+			// There are page numbers
+			if ($volume || $issue) {
+				// There is a volume & issue number preceeding
+				$ret .= ', ' . $pageholder;
+			} else {
+				// There is no volume & issue number preceeding
+				if ($journalTitle) {
+					// There is a magazine title preceeding
+					$ret .= ', ' . $pageholder;
+				} else {
+					// There is no journal title preceeding
+					$ret .= $pageholder;
+				}
+			}
+		}
+		// Add a period
+		$ret .= '. ';
+		// on a website
+		if ($medium == "website") {
+			// Add the URL (if provided)
+			if ($webUrl) {
+				$ret .= 'Retrieved from ' . Utility::checkUrlPrepend($webUrl);
+			} elseif ($webDoi) {
+				// Add the DOI (if provided)
+				$ret .= 'doi:' . $webDoi;
+			}
+		}
+		// in a database
+		if ($medium == "db") {
+			// Add the URL (if provided)
+			if ($dbUrl) {
+				$ret .= 'Retrieved from ' . Utility::checkUrlPrepend($dbUrl);
+			} elseif ($dbDoi) {
+				// Add the DOI (if provided)
+				$ret .= 'doi:' . $dbDoi;
+			}
+		}
+		echo $ret;
 	}
-	//Add a period
-	$html .= '. ';
-	//on a website
-		if ($medium=="website") {
-			//Add the URL (if provided)
-			if ($urlwebsiteinput) {
-				$html .= 'Retrieved from ' . checkurlprepend($urlwebsiteinput);
-			}elseif($doiwebsiteinput) {
-				//Add the DOI (if provided)
-				$html .= 'doi:' . $doiwebsiteinput;
-			}
-		}
-	//in a database
-		if ($medium=="db") {
-			//Add the URL (if provided)
-			if ($urldbinput) {
-				$html .= 'Retrieved from ' . checkurlprepend($urldbinput);
-			}elseif($doidbinput) {
-				//Add the DOI (if provided)
-				$html .= 'doi:' . $doidbinput;
-			}
-		}
-	echo $html;
-}
 
-//Creates a web site citation
-function apa6websitecite($style, $medium, $contributors, $articletitleinput, $websitetitleinput, $publishersponsorinput, $urlwebsiteinput, $electronicpublishday, $electronicpublishmonth, $electronicpublishyear, $webaccessdateday, $webaccessdatemonth, $webaccessdateyear) {
-	//Add the contributors
-	$html = apaauthorformat($contributors);
-	//Add the publishing date
-	$html .= apamagnewsdate($electronicpublishday, $electronicpublishmonth, $electronicpublishyear) . '. ';
-	//Add the article title (if provided)
-	if ($articletitleinput) {
-		$html .= articletitleapaformat($articletitleinput) . ' ';
+	/** Creates a web site citation */
+	function citeWebsite($contributors, $articleTitle, $webTitle, $webUrl,
+		$electronicPublishDay, $electronicPublishMonth, $electronicPublishYear)
+	{
+		// Add the contributors
+		$ret = $this->formatAuthors($contributors);
+		// Add the publishing date
+		$ret .= $this->formatPublishDate($electronicPublishDay, $electronicPublishMonth, $electronicPublishYear) . '. ';
+		// Add the article title (if provided)
+		if ($articleTitle) {
+			$ret .= $this->formatTitle($articleTitle) . ' ';
+		}
+		// Add the website title (if provided)
+		if ($webTitle) {
+			$ret .= 'Retrieved from ' . $webTitle . ' ';
+		}
+		// Add the URL (if provided)
+		if ($webUrl) {
+			$ret .= 'website: ' . Utility::checkUrlPrepend($webUrl);
+		}
+		echo $ret;
 	}
-	//Add the website title (if provided)
-	if ($websitetitleinput) {
-		$html .= 'Retrieved from ' . $websitetitleinput . ' ';
-	}
-	//Add the URL (if provided)
-	if ($urlwebsiteinput) {
-		$html .= 'website: ' . checkurlprepend($urlwebsiteinput);
-	}
-	echo $html;
 }
-?>
