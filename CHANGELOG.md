@@ -9,3 +9,4 @@ This project will adhere to [Semantic Versioning](http://semver.org/) starting a
 - Added change log to comply with ECL license.
 - Added PSR-4 namespacing
 - General code cleanup and style changes. What have I gotten myself into.
+- Add Phpspec tests

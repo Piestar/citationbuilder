@@ -1,11 +1,12 @@
 <?php namespace Piestar\CitationBuilder\Styles;
 
+use Piestar\CitationBuilder\Types\Work;
 use Piestar\CitationBuilder\Utility;
 
 /**
  * Modern Language Asoociation (MLA) format
  */
-class Mla7 {
+class Mla7 implements CitationStyle {
 
 	/**
 	 * Format a date published (MLA)
@@ -16,7 +17,7 @@ class Mla7 {
 	 *
 	 * @return string
 	 */
-	function formatPublishedDate($day, $month, $year)
+	function formatPublishDate($day, $month, $year)
 	{
 		$ret = '';
 		if ( ! $day && ! $month && ! $year) {
@@ -178,18 +179,18 @@ class Mla7 {
 
 	/** Format the author/editor names (MLA)
 	 *
-	 * @param array $contributors
+	 * @param array $authors
 	 *
 	 * @return string
 	 */
-	function formatContributors($contributors)
+	function formatAuthors($authors)
 	{
-		$count = count($contributors);
+		$count = count($authors);
 		//Count the number of authors in the array
 		$numAuthors = 0;
 		//Count the number of editors in the array
 		$numEditors = 0;
-		foreach ($contributors as $contributor) {
+		foreach ($authors as $contributor) {
 			if ($contributor['cselect'] == 'author') {
 				$numAuthors ++;
 			} elseif ($contributor['cselect'] == 'editor') {
@@ -198,31 +199,31 @@ class Mla7 {
 		}
 		$ret = '';
 		for ($i = 0; $i < $count; $i ++) {
-			if ($contributors[ $i ]['cselect'] == 'author') {
+			if ($authors[ $i ]['cselect'] == 'author') {
 				//If this contributor is an author
 				if ($i == 0) {
 					//First time through the loop
 					if ($numAuthors > 1) {
 						//There is more than one author
-						$ret .= ucwords($contributors[ $i ]['lname']);
-						if (($contributors[ $i ]['fname'] || $contributors[ $i ]['mi'])) {
+						$ret .= ucwords($authors[ $i ]['lname']);
+						if (($authors[ $i ]['fname'] || $authors[ $i ]['mi'])) {
 							//The author is a person and not a corporation
-							$ret .= ', ' . ucwords($contributors[ $i ]['fname']);
-							if ($contributors[ $i ]['mi']) {
-								$ret .= ' ' . ucwords($contributors[ $i ]['mi']) . '.';
+							$ret .= ', ' . ucwords($authors[ $i ]['fname']);
+							if ($authors[ $i ]['mi']) {
+								$ret .= ' ' . ucwords($authors[ $i ]['mi']) . '.';
 							}
 						}
 						$ret .= ',';
 					} else {
 						//There is only one author
-						if (($contributors[ $i ]['lname'] != 'Anonymous') || ( ! $contributors[ $i ]['lname'] && ! $contributors[ $i ]['fname'] && ! $contributors[ $i ]['mi'])) {
+						if (($authors[ $i ]['lname'] != 'Anonymous') || ( ! $authors[ $i ]['lname'] && ! $authors[ $i ]['fname'] && ! $authors[ $i ]['mi'])) {
 							//The author is not Anonymous or blank
-							$ret .= ucwords($contributors[ $i ]['lname']);
-							if (($contributors[ $i ]['fname'] || $contributors[ $i ]['mi'])) {
+							$ret .= ucwords($authors[ $i ]['lname']);
+							if (($authors[ $i ]['fname'] || $authors[ $i ]['mi'])) {
 								//The author is a person and not a corporation
-								$ret .= ', ' . ucwords($contributors[ $i ]['fname']);
-								if ($contributors[ $i ]['mi']) {
-									$ret .= ' ' . ucwords($contributors[ $i ]['mi']);
+								$ret .= ', ' . ucwords($authors[ $i ]['fname']);
+								if ($authors[ $i ]['mi']) {
+									$ret .= ' ' . ucwords($authors[ $i ]['mi']);
 								}
 							}
 							$ret .= '. ';
@@ -232,42 +233,42 @@ class Mla7 {
 					//Last time through the loop
 					if ($numAuthors > 1) {
 						//There is more than one author
-						$ret .= ' and ' . ucwords($contributors[ $i ]['fname']) . ' ';
-						if ($contributors[ $i ]['mi']) {
-							$ret .= ucwords($contributors[ $i ]['mi']) . '. ';
+						$ret .= ' and ' . ucwords($authors[ $i ]['fname']) . ' ';
+						if ($authors[ $i ]['mi']) {
+							$ret .= ucwords($authors[ $i ]['mi']) . '. ';
 						}
-						$ret .= ucwords($contributors[ $i ]['lname']) . '. ';
+						$ret .= ucwords($authors[ $i ]['lname']) . '. ';
 					} else {
 						//There is only one author
-						if (($contributors[ $i ]['lname'] != 'Anonymous') || ( ! $contributors[ $i ]['lname'] && ! $contributors[ $i ]['fname'] && ! $contributors[ $i ]['mi'])) {
+						if (($authors[ $i ]['lname'] != 'Anonymous') || ( ! $authors[ $i ]['lname'] && ! $authors[ $i ]['fname'] && ! $authors[ $i ]['mi'])) {
 							//The author is not Anonymous or blank
-							$ret .= ucwords($contributors[ $i ]['lname']) . ', ';
-							$ret .= ucwords($contributors[ $i ]['fname']);
-							if ($contributors[ $i ]['mi']) {
-								$ret .= ' ' . ucwords($contributors[ $i ]['mi']);
+							$ret .= ucwords($authors[ $i ]['lname']) . ', ';
+							$ret .= ucwords($authors[ $i ]['fname']);
+							if ($authors[ $i ]['mi']) {
+								$ret .= ' ' . ucwords($authors[ $i ]['mi']);
 							}
 							$ret .= '. ';
 						}
 					}
 				} else {
-					$ret .= ' ' . ucwords($contributors[ $i ]['fname']) . ' ';
-					if ($contributors[ $i ]['mi']) {
-						$ret .= ucwords($contributors[ $i ]['mi']) . '. ';
+					$ret .= ' ' . ucwords($authors[ $i ]['fname']) . ' ';
+					if ($authors[ $i ]['mi']) {
+						$ret .= ucwords($authors[ $i ]['mi']) . '. ';
 					}
-					$ret .= ucwords($contributors[ $i ]['lname']) . ',';
+					$ret .= ucwords($authors[ $i ]['lname']) . ',';
 				}
-			} elseif (($contributors[ $i ]['cselect'] == 'editor' && $numAuthors == 0)) {
+			} elseif (($authors[ $i ]['cselect'] == 'editor' && $numAuthors == 0)) {
 				//If this contributor is an editor and there are no authors listed
 				if ($i == 0) {
 					//First time through the loop
 					if ($numEditors > 1) {
 						//There is more than one editor
-						$ret .= ucwords($contributors[ $i ]['lname']);
-						if (($contributors[ $i ]['fname'] || $contributors[ $i ]['mi'])) {
+						$ret .= ucwords($authors[ $i ]['lname']);
+						if (($authors[ $i ]['fname'] || $authors[ $i ]['mi'])) {
 							//The editor is a person and not a corporation
-							$ret .= ', ' . ucwords($contributors[ $i ]['fname']);
-							if ($contributors[ $i ]['mi']) {
-								$ret .= ' ' . ucwords($contributors[ $i ]['mi']) . '.';
+							$ret .= ', ' . ucwords($authors[ $i ]['fname']);
+							if ($authors[ $i ]['mi']) {
+								$ret .= ' ' . ucwords($authors[ $i ]['mi']) . '.';
 							}
 						}
 						if ($numEditors > 2) {
@@ -275,14 +276,14 @@ class Mla7 {
 						}
 					} else {
 						//There is only one editor
-						if (($contributors[ $i ]['lname'] != 'Anonymous') || ( ! $contributors[ $i ]['lname'] && ! $contributors[ $i ]['fname'] && ! $contributors[ $i ]['mi'])) {
+						if (($authors[ $i ]['lname'] != 'Anonymous') || ( ! $authors[ $i ]['lname'] && ! $authors[ $i ]['fname'] && ! $authors[ $i ]['mi'])) {
 							//The editor is not Anonymous or blank
-							$ret .= ucwords($contributors[ $i ]['lname']);
-							if (($contributors[ $i ]['fname'] || $contributors[ $i ]['mi'])) {
+							$ret .= ucwords($authors[ $i ]['lname']);
+							if (($authors[ $i ]['fname'] || $authors[ $i ]['mi'])) {
 								//The editor is a person and not a corporation
-								$ret .= ', ' . ucwords($contributors[ $i ]['fname']);
-								if ($contributors[ $i ]['mi']) {
-									$ret .= ' ' . ucwords($contributors[ $i ]['mi']);
+								$ret .= ', ' . ucwords($authors[ $i ]['fname']);
+								if ($authors[ $i ]['mi']) {
+									$ret .= ' ' . ucwords($authors[ $i ]['mi']);
 								}
 							}
 							$ret .= ', ed. ';
@@ -292,29 +293,29 @@ class Mla7 {
 					//Last time through the loop
 					if ($numEditors > 1) {
 						//There is more than one editor
-						$ret .= ' and ' . ucwords($contributors[ $i ]['fname']) . ' ';
-						if ($contributors[ $i ]['mi']) {
-							$ret .= ucwords($contributors[ $i ]['mi']) . '. ';
+						$ret .= ' and ' . ucwords($authors[ $i ]['fname']) . ' ';
+						if ($authors[ $i ]['mi']) {
+							$ret .= ucwords($authors[ $i ]['mi']) . '. ';
 						}
-						$ret .= ucwords($contributors[ $i ]['lname']) . ', eds. ';
+						$ret .= ucwords($authors[ $i ]['lname']) . ', eds. ';
 					} else {
 						//There is only one editor
-						if (($contributors[ $i ]['lname'] != 'Anonymous') || ( ! $contributors[ $i ]['lname'] && ! $contributors[ $i ]['fname'] && ! $contributors[ $i ]['mi'])) {
+						if (($authors[ $i ]['lname'] != 'Anonymous') || ( ! $authors[ $i ]['lname'] && ! $authors[ $i ]['fname'] && ! $authors[ $i ]['mi'])) {
 							//The editor is not Anonymous or blank
-							$ret .= ucwords($contributors[ $i ]['lname']) . ', ';
-							$ret .= ucwords($contributors[ $i ]['fname']);
-							if ($contributors[ $i ]['mi']) {
-								$ret .= ' ' . ucwords($contributors[ $i ]['mi']);
+							$ret .= ucwords($authors[ $i ]['lname']) . ', ';
+							$ret .= ucwords($authors[ $i ]['fname']);
+							if ($authors[ $i ]['mi']) {
+								$ret .= ' ' . ucwords($authors[ $i ]['mi']);
 							}
 							$ret .= ', ed. ';
 						}
 					}
 				} else {
-					$ret .= ' ' . ucwords($contributors[ $i ]['fname']) . ' ';
-					if ($contributors[ $i ]['mi']) {
-						$ret .= ucwords($contributors[ $i ]['mi']) . '. ';
+					$ret .= ' ' . ucwords($authors[ $i ]['fname']) . ' ';
+					if ($authors[ $i ]['mi']) {
+						$ret .= ucwords($authors[ $i ]['mi']) . '. ';
 					}
-					$ret .= ucwords($contributors[ $i ]['lname']) . ',';
+					$ret .= ucwords($authors[ $i ]['lname']) . ',';
 				}
 			}
 		}
@@ -324,18 +325,18 @@ class Mla7 {
 
 	/** Format the translator names (MLA)
 	 *
-	 * @param array $contributors
+	 * @param array $translators
 	 *
 	 * @return string
 	 */
-	function formatTranslators($contributors)
+	function formatTranslators($translators)
 	{
-		$count = count($contributors);
+		$count = count($translators);
 		//Count the number of authors in the array
 		$numAuthors = 0;
 		//Count the number of translators in the array
 		$numTranslators = 0;
-		foreach ($contributors as $contributor) {
+		foreach ($translators as $contributor) {
 			if ($contributor['cselect'] == 'author') {
 				$numAuthors ++;
 			} elseif ($contributor['cselect'] == 'translator') {
@@ -346,61 +347,61 @@ class Mla7 {
 		//Translator iterative counter
 		$t = 0;
 		for ($i = 0; $i < $count; $i ++) {
-			if ($contributors[ $i ]['cselect'] == 'translator') {
+			if ($translators[ $i ]['cselect'] == 'translator') {
 				//If this contributor is an translator
 				if ($t == 0) {
 					//First time through the loop
 					if ($numTranslators > 1) {
 						//There is more than one translator
 						$ret .= 'Trans. ';
-						$ret .= ucwords($contributors[ $i ]['fname']) . ' ';
-						if ($contributors[ $i ]['mi']) {
-							$ret .= ucwords($contributors[ $i ]['mi']) . ' ';
+						$ret .= ucwords($translators[ $i ]['fname']) . ' ';
+						if ($translators[ $i ]['mi']) {
+							$ret .= ucwords($translators[ $i ]['mi']) . ' ';
 						}
-						$ret .= ucwords($contributors[ $i ]['lname']);
+						$ret .= ucwords($translators[ $i ]['lname']);
 						//If there are more than two translators, add a comma after the name
 						if ($numTranslators > 2) {
 							$ret .= ',';
 						}
 					} else {
 						//There is only one translator
-						if (($contributors[ $i ]['lname'] != 'Anonymous') || ( ! $contributors[ $i ]['lname'] && ! $contributors[ $i ]['fname'] && ! $contributors[ $i ]['mi'])) {
+						if (($translators[ $i ]['lname'] != 'Anonymous') || ( ! $translators[ $i ]['lname'] && ! $translators[ $i ]['fname'] && ! $translators[ $i ]['mi'])) {
 							//The translator is not Anonymous or blank
 							$ret .= 'Trans. ';
-							$ret .= ucwords($contributors[ $i ]['fname']) . ' ';
-							if ($contributors[ $i ]['mi']) {
-								$ret .= ucwords($contributors[ $i ]['mi']) . ' ';
+							$ret .= ucwords($translators[ $i ]['fname']) . ' ';
+							if ($translators[ $i ]['mi']) {
+								$ret .= ucwords($translators[ $i ]['mi']) . ' ';
 							}
-							$ret .= ucwords($contributors[ $i ]['lname']) . '. ';
+							$ret .= ucwords($translators[ $i ]['lname']) . '. ';
 						}
 					}
 				} elseif (($t + 1) == $numTranslators) {
 					//Last time through the loop
 					if ($numTranslators > 1) {
 						//There is more than one translator
-						$ret .= ' and ' . ucwords($contributors[ $i ]['fname']) . ' ';
-						if ($contributors[ $i ]['mi']) {
-							$ret .= ucwords($contributors[ $i ]['mi']) . ' ';
+						$ret .= ' and ' . ucwords($translators[ $i ]['fname']) . ' ';
+						if ($translators[ $i ]['mi']) {
+							$ret .= ucwords($translators[ $i ]['mi']) . ' ';
 						}
-						$ret .= ucwords($contributors[ $i ]['lname']) . '. ';
+						$ret .= ucwords($translators[ $i ]['lname']) . '. ';
 					} else {
 						//There is only one translator
-						if (($contributors[ $i ]['lname'] != 'Anonymous') || ( ! $contributors[ $i ]['lname'] && ! $contributors[ $i ]['fname'] && ! $contributors[ $i ]['mi'])) {
+						if (($translators[ $i ]['lname'] != 'Anonymous') || ( ! $translators[ $i ]['lname'] && ! $translators[ $i ]['fname'] && ! $translators[ $i ]['mi'])) {
 							//The translator is not Anonymous or blank
 							$ret .= 'Trans. ';
-							$ret .= ucwords($contributors[ $i ]['fname']) . ' ';
-							if ($contributors[ $i ]['mi']) {
-								$ret .= ucwords($contributors[ $i ]['mi']) . ' ';
+							$ret .= ucwords($translators[ $i ]['fname']) . ' ';
+							if ($translators[ $i ]['mi']) {
+								$ret .= ucwords($translators[ $i ]['mi']) . ' ';
 							}
-							$ret .= ucwords($contributors[ $i ]['lname']) . '. ';
+							$ret .= ucwords($translators[ $i ]['lname']) . '. ';
 						}
 					}
 				} else {
-					$ret .= ' ' . ucwords($contributors[ $i ]['fname']) . ' ';
-					if ($contributors[ $i ]['mi']) {
-						$ret .= ucwords($contributors[ $i ]['mi']) . ' ';
+					$ret .= ' ' . ucwords($translators[ $i ]['fname']) . ' ';
+					if ($translators[ $i ]['mi']) {
+						$ret .= ucwords($translators[ $i ]['mi']) . ' ';
 					}
-					$ret .= ucwords($contributors[ $i ]['lname']) . ',';
+					$ret .= ucwords($translators[ $i ]['lname']) . ',';
 				}
 				$t ++;
 			}
@@ -412,21 +413,21 @@ class Mla7 {
 	/**
 	 * Format the editor names, if there is an author (MLA)
 	 *
-	 * @param $contributors
+	 * @param $editors
 	 *
 	 * @return string
 	 */
-	function formatEditors($contributors)
+	function formatEditors($editors)
 	{
-		$count = count($contributors);
+		$count = count($editors);
 		//Count the number of authors in the array
 		$numAuthors = 0;
 		//Count the number of editors in the array
 		$numEditors = 0;
-		foreach ($contributors as $contributor) {
-			if ($contributor['cselect'] == 'author') {
+		foreach ($editors as $editor) {
+			if ($editor['cselect'] == 'author') {
 				$numAuthors ++;
-			} elseif ($contributor['cselect'] == 'editor') {
+			} elseif ($editor['cselect'] == 'editor') {
 				$numEditors ++;
 			}
 		}
@@ -434,61 +435,61 @@ class Mla7 {
 		//editor iterative counter
 		$t = 0;
 		for ($i = 0; $i < $count; $i ++) {
-			if (($contributors[ $i ]['cselect'] == 'editor') && ($numAuthors != 0)) {
+			if (($editors[ $i ]['cselect'] == 'editor') && ($numAuthors != 0)) {
 				//If this contributor is an editor and there are no authors
 				if ($t == 0) {
 					//First time through the loop
 					if ($numEditors > 1) {
 						//There is more than one editor
 						$ret .= 'Ed. ';
-						$ret .= ucwords($contributors[ $i ]['fname']);
-						if ($contributors[ $i ]['mi']) {
-							$ret .= ' ' . ucwords($contributors[ $i ]['mi']) . ' ';
+						$ret .= ucwords($editors[ $i ]['fname']);
+						if ($editors[ $i ]['mi']) {
+							$ret .= ' ' . ucwords($editors[ $i ]['mi']) . ' ';
 						}
-						$ret .= ucwords($contributors[ $i ]['lname']);
+						$ret .= ucwords($editors[ $i ]['lname']);
 						//If there are more than two editors, add a comma after the name
 						if ($numEditors > 2) {
 							$ret .= ',';
 						}
 					} else {
 						//There is only one editor
-						if (($contributors[ $i ]['lname'] != 'Anonymous') || ( ! $contributors[ $i ]['lname'] && ! $contributors[ $i ]['fname'] && ! $contributors[ $i ]['mi'])) {
+						if (($editors[ $i ]['lname'] != 'Anonymous') || ( ! $editors[ $i ]['lname'] && ! $editors[ $i ]['fname'] && ! $editors[ $i ]['mi'])) {
 							//The editor is not Anonymous or blank
 							$ret .= 'Ed. ';
-							$ret .= ucwords($contributors[ $i ]['fname']) . ' ';
-							if ($contributors[ $i ]['mi']) {
-								$ret .= ' ' . ucwords($contributors[ $i ]['mi']) . ' ';
+							$ret .= ucwords($editors[ $i ]['fname']) . ' ';
+							if ($editors[ $i ]['mi']) {
+								$ret .= ' ' . ucwords($editors[ $i ]['mi']) . ' ';
 							}
-							$ret .= ucwords($contributors[ $i ]['lname']) . '. ';
+							$ret .= ucwords($editors[ $i ]['lname']) . '. ';
 						}
 					}
 				} elseif (($t + 1) == $numEditors) {
 					//Last time through the loop
 					if ($numEditors > 1) {
 						//There is more than one editor
-						$ret .= ' and ' . ucwords($contributors[ $i ]['fname']) . ' ';
-						if ($contributors[ $i ]['mi']) {
-							$ret .= ucwords($contributors[ $i ]['mi']) . ' ';
+						$ret .= ' and ' . ucwords($editors[ $i ]['fname']) . ' ';
+						if ($editors[ $i ]['mi']) {
+							$ret .= ucwords($editors[ $i ]['mi']) . ' ';
 						}
-						$ret .= ucwords($contributors[ $i ]['lname']) . '. ';
+						$ret .= ucwords($editors[ $i ]['lname']) . '. ';
 					} else {
 						//There is only one editor
-						if (($contributors[ $i ]['lname'] != 'Anonymous') || ( ! $contributors[ $i ]['lname'] && ! $contributors[ $i ]['fname'] && ! $contributors[ $i ]['mi'])) {
+						if (($editors[ $i ]['lname'] != 'Anonymous') || ( ! $editors[ $i ]['lname'] && ! $editors[ $i ]['fname'] && ! $editors[ $i ]['mi'])) {
 							//The editor is not Anonymous or blank
 							$ret .= 'Ed. ';
-							$ret .= ucwords($contributors[ $i ]['fname']);
-							if ($contributors[ $i ]['mi']) {
-								$ret .= ' ' . ucwords($contributors[ $i ]['mi']) . ' ';
+							$ret .= ucwords($editors[ $i ]['fname']);
+							if ($editors[ $i ]['mi']) {
+								$ret .= ' ' . ucwords($editors[ $i ]['mi']) . ' ';
 							}
-							$ret .= ucwords($contributors[ $i ]['lname']) . '. ';
+							$ret .= ucwords($editors[ $i ]['lname']) . '. ';
 						}
 					}
 				} else {
-					$ret .= ' ' . ucwords($contributors[ $i ]['fname']) . ' ';
-					if ($contributors[ $i ]['mi']) {
-						$ret .= ucwords($contributors[ $i ]['mi']) . ' ';
+					$ret .= ' ' . ucwords($editors[ $i ]['fname']) . ' ';
+					if ($editors[ $i ]['mi']) {
+						$ret .= ucwords($editors[ $i ]['mi']) . ' ';
 					}
-					$ret .= ucwords($contributors[ $i ]['lname']) . ',';
+					$ret .= ucwords($editors[ $i ]['lname']) . ',';
 				}
 				$t ++;
 			}
@@ -547,529 +548,534 @@ class Mla7 {
 	/*     Citation parsing         */
 	/********************************/
 
-	/** Creates a book citation */
-	function citeBook($medium, $contributors, $publicationYear, $title, $publisherLocation, $publisher,
-		$webTitle, $webAccessDay, $webAccessMonth,  $webAccessYear, $webUrl,
-		$db, $dbAccessDay, $dbAccessMonth, $dbAccessYear, $dbUrl,
-		$medium, $ebookUrl)
+	/**
+	 * Creates a book citation
+	 *
+	 * @param Work $work
+	 */
+	function book(Work $work)
 	{
 		//Add the contributors
-		$ret = $this->formatContributors($contributors);
+		$ret = $this->formatAuthors($work->contributors);
 		//Add the book title (if provided)
-		if ($title) {
-			$ret .= $this->formatBookTitle($title) . ' ';
+		if ($work->title) {
+			$ret .= $this->formatBookTitle($work->title) . ' ';
 		}
 		//Add the translators (if no authors)
-		$ret .= $this->formatTranslators($contributors);
+		$ret .= $this->formatTranslators($work->contributors);
 		//Add the editors (if no authors)
-		$ret .= $this->formatEditors($contributors);
+		$ret .= $this->formatEditors($work->contributors);
 		//Add the publisher location (if provided)
-		if ($publisherLocation) {
-			$ret .= ucwords($publisherLocation) . ': ';
+		if ($work->publisherLocation) {
+			$ret .= ucwords($work->publisherLocation) . ': ';
 		}
 		//Add the publisher (if provided)
-		if ($publisher) {
-			$ret .= ucwords($publisher) . ', ';
+		if ($work->publisher) {
+			$ret .= ucwords($work->publisher) . ', ';
 		}
 		//Add the publication year (if provided)
-		if ($publicationYear) {
-			$ret .= $publicationYear . '. ';
+		if ($work->publicationYear) {
+			$ret .= $work->publicationYear . '. ';
 		}
 		//in print
-		if ($medium == "print") {
+		if ($work->medium == "print") {
 			//Add the medium
 			$ret .= 'Print.';
 		}
 		//on a website
-		if ($medium == "website") {
+		if ($work->medium == "website") {
 			//Add the title of the website (if provided)
-			if ($webTitle) {
-				$ret .= '<i>' . ucwords($webTitle) . '</i>' . '. ';
+			if ($work->webTitle) {
+				$ret .= '<i>' . ucwords($work->webTitle) . '</i>' . '. ';
 			}
 			//Add the medium
 			$ret .= 'Web. ';
 			//Add the access date (if provided)
-			if ($webAccessDay || $webAccessMonth || $webAccessYear) {
-				$ret .= $this->formatAccessDate($webAccessDay, $webAccessMonth, $webAccessYear) . '. ';
+			if ($work->webAccessDay || $work->webAccessMonth || $work->webAccessYear) {
+				$ret .= $this->formatAccessDate($work->webAccessDay, $work->webAccessMonth, $work->webAccessYear) . '. ';
 			}
 			//Add the URL (if provided)
-			if ($webUrl) {
+			if ($work->webUrl) {
 				$ret .= '&#60;';
-				$ret .= Utility::checkUrlPrepend($webUrl);
+				$ret .= Utility::checkUrlPrepend($work->webUrl);
 				$ret .= '&#62;';
 				$ret .= '. ';
 			}
 
 		}
 		//in a database
-		if ($medium == "db") {
+		if ($work->medium == "db") {
 			//Add the database title (if provided)
-			if ($db) {
-				$ret .= '<i>' . ucwords($db) . '</i>' . '. ';
+			if ($work->db) {
+				$ret .= '<i>' . ucwords($work->db) . '</i>' . '. ';
 			}
 			//Add the medium
 			$ret .= 'Web. ';
 			//Add the access date (if provided)
-			if ($dbAccessDay || $dbAccessMonth || $dbAccessYear) {
-				$ret .= $this->formatAccessDate($dbAccessDay, $dbAccessMonth, $dbAccessYear) . '. ';
+			if ($work->dbAccessDay || $work->dbAccessMonth || $work->dbAccessYear) {
+				$ret .= $this->formatAccessDate($work->dbAccessDay, $work->dbAccessMonth, $work->dbAccessYear) . '. ';
 			}
 			//Add the URL (if provided)
-			if ($dbUrl) {
+			if ($work->dbUrl) {
 				$ret .= '&#60;';
-				$ret .= Utility::checkUrlPrepend($dbUrl);
+				$ret .= Utility::checkUrlPrepend($work->dbUrl);
 				$ret .= '&#62;';
 				$ret .= '. ';
 			}
 		}
 		//as a digital file
-		if ($medium == "ebook") {
+		if ($work->medium == "ebook") {
 			//Add the Medium
-			$ret .= $this->formatEbookMedium($medium) . '. ';
+			$ret .= $this->formatEbookMedium($work->medium) . '. ';
 			//Add the URL (if provided)
-			if ($ebookUrl) {
+			if ($work->ebookUrl) {
 				$ret .= '&#60;';
-				$ret .= Utility::checkUrlPrepend($ebookUrl);
+				$ret .= Utility::checkUrlPrepend($work->ebookUrl);
 				$ret .= '&#62;';
 				$ret .= '. ';
 			}
 		}
-		echo $ret;
+		return $ret;
 	}
 
 	/** Creates a chapter or essay from a book citation */
-	function siteChapter($medium, $contributors, $publicationYear,
-		$chapterEssay, $bookTitle, $startPage, $endPage, $hasNonConsecutivePages,
-		$publisherLocation, $publisher, $webTitle, $webAccessDay, $webAccessMonth, $webAccessYear, $webUrl,
-		$db, $dbAccessDay, $dbAccessMonth, $dbAccessYear, $dbUrl)
+	function chapter(Work $work)
 	{
 		//Add the contributors
-		$ret = $this->formatContributors($contributors);
+		$ret = $this->formatAuthors($work->contributors);
 		//Add the translators (if no authors)
-		$ret .= $this->formatTranslators($contributors);
+		$ret .= $this->formatTranslators($work->contributors);
 		//Add the chapter/essay title (if provided)
-		if ($chapterEssay) {
+		if ($work->chapterTitle) {
 			//Uppercase all words in chapter/essay title, lowercase all articles, prepositions, & conjunctions, append a period, and encapsulate in double quotes
-			$chapterEssay = ucwords($chapterEssay);
-			$chapterEssay = Utility::lowerArticles($chapterEssay);
-			$chapterEssay = Utility::addPeriod($chapterEssay);
-			$ret .= '"' . $chapterEssay . '" ';
+			$chapterTitle = ucwords($work->chapterTitle);
+			$chapterTitle = Utility::lowerArticles($chapterTitle);
+			$chapterTitle = Utility::addPeriod($chapterTitle);
+			$ret .= '"' . $chapterTitle . '" ';
 		}
 		//Add the book title (if provided)
-		if ($bookTitle) {
-			$ret .= $this->formatBookTitle($bookTitle) . ' ';
+		if ($work->bookTitle) {
+			$ret .= $this->formatBookTitle($work->bookTitle) . ' ';
 		}
 		//Add the translators (if no authors)
-		$ret .= $this->formatTranslators($contributors);
+		$ret .= $this->formatTranslators($work->contributors);
 		//Add the editors (if no authors)
-		$ret .= $this->formatEditors($contributors);
+		$ret .= $this->formatEditors($work->contributors);
 		//Add the publisher location (if provided)
-		if ($publisherLocation) {
-			$ret .= ucwords($publisherLocation) . ': ';
+		if ($work->publisherLocation) {
+			$ret .= ucwords($work->publisherLocation) . ': ';
 		}
 		//Add the publisher (if provided)
-		if ($publisher) {
-			$ret .= ucwords($publisher) . ', ';
+		if ($work->publisher) {
+			$ret .= ucwords($work->publisher) . ', ';
 		}
 		//Add the publication year (if provided)
-		if ($publicationYear) {
-			$ret .= $publicationYear . '. ';
+		if ($work->publicationYear) {
+			$ret .= $work->publicationYear . '. ';
 		}
 		//Add the page numbers
-		$ret .= $this->getPageNumbers($startPage, $endPage, $hasNonConsecutivePages);
+		$ret .= $this->getPageNumbers($work->startPage, $work->endPage, $work->hasNonConsecutivePages);
 		//in print
-		if ($medium == "print") {
+		if ($work->medium == "print") {
 			//Add the medium
 			$ret .= 'Print.';
 		}
 		//on a website
-		if ($medium == "website") {
+		if ($work->medium == "website") {
 			//Add the title of the website (if provided)
-			if ($webTitle) {
-				$ret .= '<i>' . ucwords($webTitle) . '</i>' . '. ';
+			if ($work->webTitle) {
+				$ret .= '<i>' . ucwords($work->webTitle) . '</i>' . '. ';
 			}
 			//Add the medium
 			$ret .= 'Web. ';
 			//Add the access date (if provided)
-			if ($webAccessDay || $webAccessMonth || $webAccessYear) {
-				$ret .= $this->formatAccessDate($webAccessDay, $webAccessMonth, $webAccessYear) . '. ';
+			if ($work->webAccessDay || $work->webAccessMonth || $work->webAccessYear) {
+				$ret .= $this->formatAccessDate($work->webAccessDay, $work->webAccessMonth, $work->webAccessYear) . '. ';
 			}
 			//Add the URL (if provided)
-			if ($webUrl) {
+			if ($work->webUrl) {
 				$ret .= '&#60;';
-				$ret .= Utility::checkUrlPrepend($webUrl);
+				$ret .= Utility::checkUrlPrepend($work->webUrl);
 				$ret .= '&#62;';
 				$ret .= '. ';
 			}
 
 		}
 		//in a database
-		if ($medium == "db") {
+		if ($work->medium == "db") {
 			//Add the database title (if provided)
-			if ($db) {
-				$ret .= '<i>' . ucwords($db) . '</i>' . '. ';
+			if ($work->db) {
+				$ret .= '<i>' . ucwords($work->db) . '</i>' . '. ';
 			}
 			//Add the medium
 			$ret .= 'Web. ';
 			//Add the access date (if provided)
-			if ($dbAccessDay || $dbAccessMonth || $dbAccessYear) {
-				$ret .= $this->formatAccessDate($dbAccessDay, $dbAccessMonth, $dbAccessYear) . '. ';
+			if ($work->dbAccessDay || $work->dbAccessMonth || $work->dbAccessYear) {
+				$ret .= $this->formatAccessDate($work->dbAccessDay, $work->dbAccessMonth, $work->dbAccessYear) . '. ';
 			}
 			//Add the URL (if provided)
-			if ($dbUrl) {
+			if ($work->dbUrl) {
 				$ret .= '&#60;';
-				$ret .= Utility::checkUrlPrepend($dbUrl);
+				$ret .= Utility::checkUrlPrepend($work->dbUrl);
 				$ret .= '&#62;';
 				$ret .= '. ';
 			}
 		}
-		echo $ret;
+		return $ret;
 	}
 
-	/** Creates a magazine article citation */
-	function citeMagazine($medium, $contributors, $articleTitle, $magazineTitle, $publishedDay, $publishedMonth, $publishedYear,
-		$startPage, $endPage, $hasNonConsecutivePages, $webTitle, $webAccessDay, $webAccessMonth, $webAccessYear, $webUrl,
-		$dbStartPage, $dbEndPage, $dbHasNonConsecutive, $db, $dbAccessDay, $dbAccessMonth, $dbAccessYear, $dbUrl)
+	/**
+	 * Creates a magazine article citation
+	 *
+	 * @param Work $work
+	 */
+	function magazine(Work $work)
 	{
 		//Add the contributors
-		$ret = $this->formatContributors($contributors);
+		$ret = $this->formatAuthors($work->contributors);
 		//Add the article title (if provided)
-		if ($articleTitle) {
+		if ($work->articleTitle) {
 			//Uppercase all words in article title, lowercase all art., prep., & conj., append a period, and encapsulate in double quotes
-			$articleTitle = ucwords($articleTitle);
+			$articleTitle = ucwords($work->articleTitle);
 			$articleTitle = Utility::lowerArticles($articleTitle);
 			$articleTitle = Utility::addPeriod($articleTitle);
 			$ret .= '"' . $articleTitle . '" ';
 		}
 		//in print
-		if ($medium == "print") {
+		if ($work->medium == "print") {
 			//Add the magazine title (if provided)
-			if ($magazineTitle) {
-				$magtitleholder = ucwords($magazineTitle);
+			if ($work->magazineTitle) {
+				$magtitleholder = ucwords($work->magazineTitle);
 				$ret .= '<i>' . Utility::lowerArticles($magtitleholder) . '</i>' . ' ';
 			}
 			//Add the date published (if provided)
-			if ($publishedDay || $publishedMonth || $publishedYear) {
-				$ret .= $this->formatPublishedDate($publishedDay, $publishedMonth, $publishedYear);
+			if ($work->publishedDay || $work->publishedMonth || $work->publishedYear) {
+				$ret .= $this->formatPublishDate($work->publishedDay, $work->publishedMonth, $work->publishedYear);
 				//Add a colon
 				$ret .= ': ';
 			}
 			//Add the page numbers
-			$ret .= $this->getPageNumbers($startPage, $endPage, $hasNonConsecutivePages);
+			$ret .= $this->getPageNumbers($work->startPage, $work->endPage, $work->hasNonConsecutivePages);
 			//Add the medium
 			$ret .= 'Print.';
 		}
 		//on website
-		if ($medium == "website") {
+		if ($work->medium == "website") {
 			//Add the website publisher/sponsor (if provided)
-			if ($magazineTitle) {
-				$ret .= '<i>' . ucwords($magazineTitle) . '</i>' . '. ';
+			if ($work->magazineTitle) {
+				$ret .= '<i>' . ucwords($work->magazineTitle) . '</i>' . '. ';
 			} else {
 				$ret .= 'N.p., ';
 			}
 			//Add the website title (if provided)
-			if ($webTitle) {
-				$ret .= ucwords($webTitle) . ', ';
+			if ($work->webTitle) {
+				$ret .= ucwords($work->webTitle) . ', ';
 			}
 			//Add the date published (if provided)
-			$ret .= $this->formatPublishedDate($publishedDay, $publishedMonth, $publishedYear);
+			$ret .= $this->formatPublishDate($work->publishedDay, $work->publishedMonth, $work->publishedYear);
 			//Add a period
 			$ret .= '. ';
 			//Add the medium
 			$ret .= 'Web. ';
 			//Add the access date (if provided)
-			if ($webAccessDay || $webAccessMonth || $webAccessYear) {
-				$ret .= $this->formatAccessDate($webAccessDay, $webAccessMonth, $webAccessYear) . '. ';
+			if ($work->webAccessDay || $work->webAccessMonth || $work->webAccessYear) {
+				$ret .= $this->formatAccessDate($work->webAccessDay, $work->webAccessMonth, $work->webAccessYear) . '. ';
 			}
 			//Add the URL (if provided)
-			if ($webUrl) {
+			if ($work->webUrl) {
 				$ret .= '&#60;';
-				$ret .= Utility::checkUrlPrepend($webUrl);
+				$ret .= Utility::checkUrlPrepend($work->webUrl);
 				$ret .= '&#62;';
 				$ret .= '. ';
 			}
 		}
 		//in a database
-		if ($medium == "db") {
+		if ($work->medium == "db") {
 			//Add the magazine title (if provided)
-			if ($magazineTitle) {
-				$magtitleholder = ucwords($magazineTitle);
+			if ($work->magazineTitle) {
+				$magtitleholder = ucwords($work->magazineTitle);
 				$ret .= '<i>' . Utility::lowerArticles($magtitleholder) . '</i>' . ' ';
 			}
 			//Add the date published (if provided)
-			$ret .= $this->formatPublishedDate($publishedDay, $publishedMonth, $publishedYear);
+			$ret .= $this->formatPublishDate($work->publishedDay, $work->publishedMonth, $work->publishedYear);
 			//Add a period
 			$ret .= '. ';
 			//Add the page numbers
-			$ret .= $this->getPageNumbers($dbStartPage, $dbEndPage, $dbHasNonConsecutive);
+			$ret .= $this->getPageNumbers($work->dbStartPage, $work->dbEndPage, $work->dbHasNonConsecutive);
 			//Add the database title (if provided)
-			if ($db) {
-				$ret .= '<i>' . ucwords($db) . '</i>' . '. ';
+			if ($work->db) {
+				$ret .= '<i>' . ucwords($work->db) . '</i>' . '. ';
 			}
 			//Add the medium
 			$ret .= 'Web. ';
 			//Add the access date (if provided)
-			if ($dbAccessDay || $dbAccessMonth || $dbAccessYear) {
-				$ret .= $this->formatAccessDate($dbAccessDay, $dbAccessMonth, $dbAccessYear) . '. ';
+			if ($work->dbAccessDay || $work->dbAccessMonth || $work->dbAccessYear) {
+				$ret .= $this->formatAccessDate($work->dbAccessDay, $work->dbAccessMonth, $work->dbAccessYear) . '. ';
 			}
 			//Add the URL (if provided)
-			if ($dbUrl) {
+			if ($work->dbUrl) {
 				$ret .= '&#60;';
-				$ret .= Utility::checkUrlPrepend($dbUrl);
+				$ret .= Utility::checkUrlPrepend($work->dbUrl);
 				$ret .= '&#62;';
 				$ret .= '. ';
 			}
 		}
-		echo $ret;
+		return $ret;
 	}
 
-	/** Creates a newspaper article citation */
-	function citeNewspaper($medium, $contributors, $articleTitle, $newspaperTitle, $newspaperCity,
-		$day, $month, $year, $edition, $section, $startPage, $endPage, $hasNonConsecutivePages,
-		$webTitle, $webUrl, $electronicPublishDay, $electronicPublishMonth, $electronicPublishYear, $webAccessDay, $webAccessMonth, $webAccessYear,
-		$dbNewspaperCity, $dbPublishedDay, $dbPublishedMonth, $dbPublishedYear, $dbEdition, $dbStartPage, $dbEndPage,
-		$dbHasNonConsecutive, $db, $dbAccessDay, $dbAccessMonth, $dbAccessYear, $dbUrl)
+	/**
+	 * Creates a newspaper article citation
+	 *
+	 * @param Work $work
+	 */
+	function newspaper(Work $work)
 	{
 		//Add the contributors
-		$ret = $this->formatContributors($contributors);
+		$ret = $this->formatAuthors($work->contributors);
 		//Add the article title (if provided)
-		if ($articleTitle) {
+		if ($work->articleTitle) {
 			//Uppercase all words in article title, lowercase all art., prep., & conj., append a period, and encapsulate in double quotes
-			$articleTitle = ucwords($articleTitle);
+			$articleTitle = ucwords($work->articleTitle);
 			$articleTitle = Utility::lowerArticles($articleTitle);
 			$articleTitle = Utility::addPeriod($articleTitle);
 			$ret .= '"' . $articleTitle . '" ';
 		}
 		//in print
-		if ($medium == "print") {
+		if ($work->medium == "print") {
 			//Add the newspaper title (if provided)
-			if ($newspaperTitle) {
+			if ($work->newspaperTitle) {
 				//Uppercase all words in a newspaper's title
-				$newspaperTitle = ucwords($newspaperTitle);
+				$newspaperTitle = ucwords($work->newspaperTitle);
 				//Remove articles (A, An, The) before the newspaper title 
 				$newspaperTitle = Utility::removeArticle($newspaperTitle);
 				$ret .= '<i>' . $newspaperTitle . '</i>' . ' ';
 			}
 			//Add the newspaper city (if provided)
-			if ($newspaperCity) {
-				$ret .= '[' . ucwords($newspaperCity) . ']' . ' ';
+			if ($work->newspaperCity) {
+				$ret .= '[' . ucwords($work->newspaperCity) . ']' . ' ';
 			}
 			//Add the date published (if provided)
-			if ($day || $month || $year) {
-				$ret .= $this->formatPublishedDate($day, $month, $year);
+			if ($work->day || $work->month || $work->year) {
+				$ret .= $this->formatPublishDate($work->day, $work->month, $work->year);
 			}
 			//Add the edition (if provided)
-			if ($edition) {
-				$edition = strtolower($edition);
+			if ($work->edition) {
+				$edition = strtolower($work->edition);
 				$ret .= ', ' . $this->abbreviateEdition($edition);
 			}
 			//Add the section (if provided)
-			if ($section) {
-				$ret .= ', ' . $this->formatNewspaperSection($section);
+			if ($work->section) {
+				$ret .= ', ' . $this->formatNewspaperSection($work->section);
 			}
 			//Add a colon
 			$ret .= ': ';
 			//Add the page numbers
-			$ret .= $this->getPageNumbers($startPage, $endPage, $hasNonConsecutivePages);
+			$ret .= $this->getPageNumbers($work->startPage, $work->endPage, $work->hasNonConsecutivePages);
 			//Add the medium
 			$ret .= 'Print.';
 		}
 		//on a website
-		if ($medium == "website") {
+		if ($work->medium == "website") {
 			//Add the web site title (if provided)
-			if ($webTitle) {
-				$ret .= '<i>' . ucwords($webTitle) . '</i>' . '. ';
+			if ($work->webTitle) {
+				$ret .= '<i>' . ucwords($work->webTitle) . '</i>' . '. ';
 			}
 			//Add the newspaper title (if provided)
-			if ($newspaperTitle) {
+			if ($work->newspaperTitle) {
 				//Uppercase all words in a newspaper's title
-				$newspaperTitle = ucwords($newspaperTitle);
+				$newspaperTitle = ucwords($work->newspaperTitle);
 				//Remove articles (A, An, The) before the newspaper title 
 				$newspaperTitle = Utility::removeArticle($newspaperTitle);
 				$ret .= '<i>' . $newspaperTitle . '</i>' . ', ';
 			}
 			//Add the electronically published date (if provided)
-			if ($electronicPublishDay || $electronicPublishMonth || $electronicPublishYear) {
-				$ret .= $this->formatPublishedDate($electronicPublishDay, $electronicPublishMonth, $electronicPublishYear) . '. ';
+			if ($work->electronicPublishDay || $work->electronicPublishMonth || $work->electronicPublishYear) {
+				$ret .= $this->formatPublishDate($work->electronicPublishDay, $work->electronicPublishMonth, $work->electronicPublishYear) . '. ';
 			}
 			//Add the medium
 			$ret .= 'Web. ';
 			//Add the access date (if provided) 
-			if ($webAccessDay || $webAccessMonth || $webAccessYear) {
-				$ret .= $this->formatAccessDate($webAccessDay, $webAccessMonth, $webAccessYear) . '. ';
+			if ($work->webAccessDay || $work->webAccessMonth || $work->webAccessYear) {
+				$ret .= $this->formatAccessDate($work->webAccessDay, $work->webAccessMonth, $work->webAccessYear) . '. ';
 			}
 			//Add the URL (if provided)
-			if ($webUrl) {
+			if ($work->webUrl) {
 				$ret .= '&#60;';
-				$ret .= Utility::checkUrlPrepend($webUrl);
+				$ret .= Utility::checkUrlPrepend($work->webUrl);
 				$ret .= '&#62;';
 				$ret .= '. ';
 			}
 		}
 		//in a database
-		if ($medium == "db") {
+		if ($work->medium == "db") {
 			//Add the newspaper title (if provided)
-			if ($newspaperTitle) {
+			if ($work->newspaperTitle) {
 				//Uppercase all words in a newspaper's title
-				$newspaperTitle = ucwords($newspaperTitle);
+				$newspaperTitle = ucwords($work->newspaperTitle);
 				//Remove articles (A, An, The) before the newspaper title 
 				$newspaperTitle = Utility::removeArticle($newspaperTitle);
 				$ret .= '<i>' . $newspaperTitle . '</i>' . ' ';
 			}
 			//Add the newspaper city (if provided)
-			if ($dbNewspaperCity) {
-				$ret .= '[' . ucwords($dbNewspaperCity) . ']' . ' ';
+			if ($work->dbNewspaperCity) {
+				$ret .= '[' . ucwords($work->dbNewspaperCity) . ']' . ' ';
 			}
 			//Add the date published (if provided)
-			if ($dbPublishedDay || $dbPublishedMonth || $dbPublishedYear) {
-				$ret .= $this->formatPublishedDate($dbPublishedDay, $dbPublishedMonth, $dbPublishedYear);
+			if ($work->dbPublishedDay || $work->dbPublishedMonth || $work->dbPublishedYear) {
+				$ret .= $this->formatPublishDate($work->dbPublishedDay, $work->dbPublishedMonth, $work->dbPublishedYear);
 			}
 			//Add the edition (if provided)
-			if ($dbEdition) {
-				$dbEdition = strtolower($dbEdition);
+			if ($work->dbEdition) {
+				$dbEdition = strtolower($work->dbEdition);
 				$ret .= ', ' . $this->abbreviateEdition($dbEdition);
 			}
 			//Add a colon
 			$ret .= ': ';
 			//Add the page numbers
-			$ret .= $this->getPageNumbers($dbStartPage, $dbEndPage, $dbHasNonConsecutive);
+			$ret .= $this->getPageNumbers($work->dbStartPage, $work->dbEndPage, $work->dbHasNonConsecutive);
 			//Add the database title (if provided)
-			if ($db) {
-				$ret .= '<i>' . ucwords($db) . '</i>' . '. ';
+			if ($work->db) {
+				$ret .= '<i>' . ucwords($work->db) . '</i>' . '. ';
 			}
 			//Add the medium
 			$ret .= 'Web. ';
 			//Add the access date
-			$ret .= $this->formatAccessDate($dbAccessDay, $dbAccessMonth, $dbAccessYear) . '. ';
+			$ret .= $this->formatAccessDate($work->dbAccessDay, $work->dbAccessMonth, $work->dbAccessYear) . '. ';
 			//Add the URL (if provided)
-			if ($dbUrl) {
+			if ($work->dbUrl) {
 				$ret .= '&#60;';
-				$ret .= Utility::checkUrlPrepend($dbUrl);
+				$ret .= Utility::checkUrlPrepend($work->dbUrl);
 				$ret .= '&#62;';
 				$ret .= '. ';
 			}
 		}
-		echo $ret;
+		return $ret;
 	}
 
-	/** Creates a scholarly journal article citation */
-	function mla7scholarjournalcite($medium, $contributors, $yearPublished,
-		$articleTitle, $journalTitle, $volume, $issue, $startPage, $endPage, $hasNonConsecutivePages,
-		$webUrl, $webAccessDay, $webAccessMonth, $webAccessYear, $db, $dbAccessDay, $dbAccessMonth, $dbAccessYear, $dbUrl)
+	/**
+	 * Creates a scholarly journal article citation
+	 *
+	 * @param Work $work
+	 */
+	function journal(Work $work)
 	{
 		//Add the contributors
-		$ret = $this->formatContributors($contributors);
+		$ret = $this->formatAuthors($work->contributors);
 		//Add the article title (if provided)
-		if ($articleTitle) {
+		if ($work->articleTitle) {
 			//Uppercase all words in article title, lowercase all art., prep., & conj., append a period, and encapsulate in double quotes
-			$articleTitle = ucwords($articleTitle);
+			$articleTitle = ucwords($work->articleTitle);
 			$articleTitle = Utility::lowerArticles($articleTitle);
 			$articleTitle = Utility::addPeriod($articleTitle);
 			$ret .= '"' . $articleTitle . '" ';
 		}
 		//Add the journal title (if provided)
-		if ($journalTitle) {
-			$journalTitleholder = ucwords($journalTitle);
+		if ($work->journalTitle) {
+			$journalTitleholder = ucwords($work->journalTitle);
 			$ret .= '<i>' . Utility::lowerArticles($journalTitleholder) . ' </i>';
 		}
 		//Add the volume number (if provided)
-		if ($volume) {
-			$ret .= $volume;
+		if ($work->volume) {
+			$ret .= $work->volume;
 		}
 		//Add the issue number (if provided)
-		if ($issue) {
-			$ret .= '.' . $issue . ' ';
+		if ($work->issue) {
+			$ret .= '.' . $work->issue . ' ';
 		}
 		//Add the date published (if provided)
-		if ($yearPublished) {
-			$ret .= $this->formatYearPublished($yearPublished);
+		if ($work->yearPublished) {
+			$ret .= $this->formatYearPublished($work->yearPublished);
 		}
 		//Add the page numbers
-		$ret .= $this->getPageNumbers($startPage, $endPage, $hasNonConsecutivePages);
+		$ret .= $this->getPageNumbers($work->startPage, $work->endPage, $work->hasNonConsecutivePages);
 		//in print
-		if ($medium == "print") {
+		if ($work->medium == "print") {
 			//Add the medium
 			$ret .= 'Print.';
 		}
 		//on a website
-		if ($medium == "website") {
+		if ($work->medium == "website") {
 			//Add the medium
 			$ret .= 'Web. ';
 			//Add the access date (if provided)
-			if ($webAccessDay || $webAccessMonth || $webAccessYear) {
-				$ret .= $this->formatAccessDate($webAccessDay, $webAccessMonth, $webAccessYear) . '. ';
+			if ($work->webAccessDay || $work->webAccessMonth || $work->webAccessYear) {
+				$ret .= $this->formatAccessDate($work->webAccessDay, $work->webAccessMonth, $work->webAccessYear) . '. ';
 			}
 			//Add the URL (if provided)
-			if ($webUrl) {
+			if ($work->webUrl) {
 				$ret .= '&#60;';
-				$ret .= Utility::checkUrlPrepend($webUrl);
+				$ret .= Utility::checkUrlPrepend($work->webUrl);
 				$ret .= '&#62;';
 				$ret .= '. ';
 			}
 		}
 		//in a database
-		if ($medium == "db") {
+		if ($work->medium == "db") {
 			//Add the database title (if provided)
-			if ($db) {
-				$ret .= '<i>' . ucwords($db) . '</i>' . '. ';
+			if ($work->db) {
+				$ret .= '<i>' . ucwords($work->db) . '</i>' . '. ';
 			}
 			//Add the medium
 			$ret .= 'Web. ';
 			//Add the access date (if provided)
-			if ($dbAccessDay || $dbAccessMonth || $dbAccessYear) {
-				$ret .= $this->formatAccessDate($dbAccessDay, $dbAccessMonth, $dbAccessYear) . '. ';
+			if ($work->dbAccessDay || $work->dbAccessMonth || $work->dbAccessYear) {
+				$ret .= $this->formatAccessDate($work->dbAccessDay, $work->dbAccessMonth, $work->dbAccessYear) . '. ';
 			}
 			//Add the URL (if provided)
-			if ($dbUrl) {
+			if ($work->dbUrl) {
 				$ret .= '&#60;';
-				$ret .= Utility::checkUrlPrepend($dbUrl);
+				$ret .= Utility::checkUrlPrepend($work->dbUrl);
 				$ret .= '&#62;';
 				$ret .= '. ';
 			}
 		}
-		echo $ret;
+		return $ret;
 	}
 
 	/** Creates a web site citation */
-	function citeWebsite($contributors, $articleTitle, $webTitle, $publisherSponsor,
-		$webUrl, $electronicPublishDay, $electronicPublishMonth, $electronicPublishYear, $webAccessDay, $webAccessMonth, $webAccessYear)
+	function website()
 	{
 		//Add the contributors
-		$ret = $this->formatContributors($contributors);
+		$ret = $this->formatAuthors($work->contributors);
 		//Add the article title (if provided)
-		if ($articleTitle) {
+		if ($work->articleTitle) {
 			//Uppercase all words in article title, lowercase all art., prep., & conj., append a period, and encapsulate in double quotes
-			$articleTitle = ucwords($articleTitle);
+			$articleTitle = ucwords($work->articleTitle);
 			$articleTitle = Utility::lowerArticles($articleTitle);
 			$articleTitle = Utility::addPeriod($articleTitle);
 			$ret .= '"' . $articleTitle . '" ';
 		}
 		//Add the web site title (if provided)
-		if ($webTitle) {
-			$ret .= '<i>' . ucwords($webTitle) . '</i>' . '. ';
+		if ($work->webTitle) {
+			$ret .= '<i>' . ucwords($work->webTitle) . '</i>' . '. ';
 		}
 		//Add the web site publisher/sponsor (if provided)
-		if ($publisherSponsor) {
-			$ret .= ucwords($publisherSponsor) . ', ';
+		if ($work->publisherSponsor) {
+			$ret .= ucwords($work->publisherSponsor) . ', ';
 		} else {
 			$ret .= 'N.p., ';
 		}
 		//Add the electronically published date (if provided)
-		$ret .= $this->formatPublishedDate($electronicPublishDay, $electronicPublishMonth, $electronicPublishYear);
+		$ret .= $this->formatPublishDate($work->electronicPublishDay, $work->electronicPublishMonth, $work->electronicPublishYear);
 		//Add a period
 		$ret .= '. ';
 		//Add the medium
 		$ret .= 'Web. ';
 		//Add the access date (if provided)
-		if ($webAccessDay || $webAccessMonth || $webAccessYear) {
-			$ret .= $this->formatAccessDate($webAccessDay, $webAccessMonth, $webAccessYear) . '. ';
+		if ($work->webAccessDay || $work->webAccessMonth || $work->webAccessYear) {
+			$ret .= $this->formatAccessDate($work->webAccessDay, $work->webAccessMonth, $work->webAccessYear) . '. ';
 		}
 		//Add the URL (if provided)
-		if ($webUrl) {
+		if ($work->webUrl) {
 			$ret .= '&#60;';
-			$ret .= Utility::checkUrlPrepend($webUrl);
+			$ret .= Utility::checkUrlPrepend($work->webUrl);
 			$ret .= '&#62;';
 			$ret .= '. ';
 		}
-		echo $ret;
+		return $ret;
+	}
+
+	function __toString() {
+		return 'MLA7';
 	}
 }

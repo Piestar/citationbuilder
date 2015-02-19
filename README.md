@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/Piestar/citationbuilder.svg?branch=master)](https://travis-ci.org/Piestar/citationbuilder) 
+
 Citation Builder Library, version 1.0
 
 ABOUT CITATION BUILDER LIBRARY

@@ -138,4 +138,12 @@ class Utility {
 		return $initial;
 	}
 
+	public static function array_get($arr, $key, $default = null)
+	{
+		if (!is_array($arr)) {
+			return $default;
+		}
+		return isset($arr[$key]) ? $arr[$key] : $default;
+	}
+
 }

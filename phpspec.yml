@@ -1,0 +1,4 @@
+suites:
+    citation_builder_suite:
+        namespace: Piestar\CitationBuilder
+        psr4_prefix: Piestar\CitationBuilder

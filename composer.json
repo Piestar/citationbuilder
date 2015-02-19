@@ -1,5 +1,6 @@
 {
-  "name": "Piestar/citationbuilder",
+  "name": "piestar/citationbuilder",
+  "license": "ECL 1.0",
   "description": "Citation builder library",
   "keywords": ["citation", "publication", "reference", "mla", "apa"],
   "prefer-stable": true,
