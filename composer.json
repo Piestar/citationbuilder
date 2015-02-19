@@ -1,0 +1,11 @@
+{
+  "name": "Piestar/citationbuilder",
+  "description": "Citation builder library",
+  "keywords": ["citation", "publication", "reference", "mla", "apa"],
+  "prefer-stable": true,
+  "autoload": {
+    "psr-4": {
+      "Piestar\\CitationBuilder\\": "src"
+    }
+  }
+}
